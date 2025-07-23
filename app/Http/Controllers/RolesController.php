@@ -31,23 +31,24 @@ class RolesController extends Controller
         $rolesQuery = Role::orderBy('id');
 
         if ($showDisabled) {
-            $rolesQuery->withTrashed(); 
+            $rolesQuery->onlyTrashed();
         }
 
-        $roles = $rolesQuery->get();
+        $roles = $rolesQuery->paginate(10)->appends([
+            'show_disabled' => $showDisabled,
+        ]);
 
-        // Przetwórz role, dodając status przypisania
-        // Wciąż musimy uważać na role usunięte, które nie mają nazwy w Spatie Permissions
-        $rolesWithAssignmentStatus = $roles->map(function ($role) {
-            // Sprawdź is_assigned_to_users tylko dla aktywnych ról
-            $role->is_assigned_to_users = ($role->deleted_at === null)
-                                            ? User::role($role->name)->exists()
-                                            : false; // Usunięta rola nie jest przypisana
-            return $role;
+        $roles->through(function ($role) {
+            return [
+                'id' => $role->id,
+                'name' => $role->name,
+                'deleted_at' => $role->deleted_at,
+                'is_assigned_to_users' => $role->users()->exists(),
+            ];
         });
 
         return Inertia::render('Roles/Index', [
-            'roles' => $rolesWithAssignmentStatus->values(),
+            'roles' => $roles,
             'flash' => session('flash'),
             'show_disabled' => $showDisabled,
         ]);
@@ -122,8 +123,10 @@ class RolesController extends Controller
             return to_route('roles.index')->with('error', 'Nie możesz wyłączyć roli "Kierownik"!');
         }
 
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         // Sprawdź, czy użytkownik próbuje usunąć rolę, którą sam posiada
-        if (Auth::hasRole($role->name)) {
+        if ($user->hasRole($role->name)) {
              return to_route('roles.index')->with('error', 'Nie możesz wyłączyć roli, którą sam posiadasz!');
         }
 

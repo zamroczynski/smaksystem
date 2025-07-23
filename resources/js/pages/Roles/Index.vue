@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'vue-sonner';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import Pagination from '@/components/Pagination.vue';
 
 import {
     AlertDialog,
@@ -23,7 +24,25 @@ import {
 import { ref, watch } from 'vue';
 
 const props = defineProps<{
-    roles: Role[];
+    roles: {
+        data: Array<{
+            id: number;
+            name: string;
+            deleted_at: string | null;
+            is_assigned_to_users?: boolean;
+        }>;
+        links: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
+        current_page: number;
+        from: number;
+        last_page: number;
+        per_page: number;
+        to: number;
+        total: number;
+    };
     flash?: {
         success?: string;
         error?: string;
@@ -100,6 +119,11 @@ const deleteRoleConfirmed = () => {
                 isAlertDialogOpen.value = false;
                 roleToDeleteId.value = null;
                 roleToDeleteName.value = '';
+                router.get(route('roles.index', { show_disabled: showDisabledRoles.value }), {}, {
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ['roles', 'show_disabled'],
+                });
             },
             onError: (errors) => {
                 toast.error(props.flash?.error || 'Wystąpił błąd podczas wyłączania roli.');
@@ -125,7 +149,7 @@ const deleteRoleConfirmed = () => {
                     <div class="flex items-center space-x-2">
                         <Switch id="show-disabled-roles" :model-value="showDisabledRoles"
                             @update:model-value="showDisabledRoles = $event" />
-                        <Label for="show-disabled-roles">Pokaż wyłączone role</Label>
+                        <Label for="show-disabled-roles">Pokaż tylko wyłączone role</Label>
                     </div>
                 </div>
 
@@ -140,7 +164,7 @@ const deleteRoleConfirmed = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="role in roles" :key="role.id">
+                            <TableRow v-for="role in props.roles.data" :key="role.id">
                                 <TableCell class="font-medium">{{ role.id }}</TableCell>
                                 <TableCell>{{ role.name }}</TableCell>
                                 <TableCell>
@@ -163,13 +187,14 @@ const deleteRoleConfirmed = () => {
                                     </Button>
                                 </TableCell>
                             </TableRow>
-                            <TableRow v-if="roles.length === 0">
+                            <TableRow v-if="props.roles.data.length === 0">
                                 <TableCell colspan="4" class="text-center text-gray-500">Brak ról do wyświetlenia.
                                 </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
                 </div>
+                 <Pagination :links="props.roles.links" class="mt-6" />
                 <div class="mt-6">
                     <Button as-child class="w-full">
                         <Link :href="route('roles.create')">Dodaj Rolę</Link>

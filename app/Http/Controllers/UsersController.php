@@ -30,10 +30,12 @@ class UsersController extends Controller
         $usersQuery = User::orderBy('id');
 
         if ($showDisabled) {
-            $usersQuery->withTrashed();
+            $usersQuery->onlyTrashed();
         }
 
-        $users = $usersQuery->paginate(10); 
+        $users = $usersQuery->paginate(10)->appends([
+            'show_disabled' => $showDisabled,
+        ]); 
 
         $users->through(function ($user) {
             $user->load('roles');

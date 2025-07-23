@@ -148,7 +148,7 @@ const restoreUser = (userId: number) => {
                                 :model-value="showDisabledUsers"
                                 @update:model-value="showDisabledUsers = $event"
                             />
-                            <Label for="show-disabled-users">Pokaż wyłączonych użytkowników</Label>
+                            <Label for="show-disabled-users">Pokaż tylko wyłączonych użytkowników</Label>
                     </div>
                 </div>
                 <div class="relative w-full overflow-auto">
