@@ -85,4 +85,21 @@ class RoleService
     {
         return User::role($role->name)->exists();
     }
+
+    /**
+     * Przywraca miękko usuniętą rolę.
+     *
+     * @param int $roleId ID roli do przywrócenia.
+     * @return Role|null Przywrócona rola lub null, jeśli nie znaleziono.
+     */
+    public function restoreRole(int $roleId): ?Role
+    {
+        $role = Role::withTrashed()->find($roleId);
+
+        if ($role) {
+            $role->restore();
+        }
+
+        return $role;
+    }
 }

@@ -18,10 +18,14 @@ Route::get('dashboard', function () {
 
 Route::middleware(['auth', 'can:Edycja pracowników'])->group(function () {
     Route::resource('users', UsersController::class)->except(['show']);
+    Route::post('/users/{userId}/restore', [UsersController::class, 'restore'])
+        ->name('users.restore');
 });
 
 Route::middleware(['auth', 'can:Edycja ról'])->group(function () {
     Route::resource('roles', RolesController::class)->except(['show']);
+    Route::post('/roles/{roleId}/restore', [RolesController::class, 'restore'])
+        ->name('roles.restore');
 });
 
 

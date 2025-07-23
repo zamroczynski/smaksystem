@@ -24,19 +24,32 @@ class RolesController extends Controller
     /**
      * Display a listing of the roles.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::all();
+        $showDisabled = $request->boolean('show_disabled');
 
-        // Czy rola jest przypisana do użytkowników.
+        $rolesQuery = Role::orderBy('id');
+
+        if ($showDisabled) {
+            $rolesQuery->withTrashed(); 
+        }
+
+        $roles = $rolesQuery->get();
+
+        // Przetwórz role, dodając status przypisania
+        // Wciąż musimy uważać na role usunięte, które nie mają nazwy w Spatie Permissions
         $rolesWithAssignmentStatus = $roles->map(function ($role) {
-            $role->is_assigned_to_users = User::role($role->name)->exists();
+            // Sprawdź is_assigned_to_users tylko dla aktywnych ról
+            $role->is_assigned_to_users = ($role->deleted_at === null)
+                                            ? User::role($role->name)->exists()
+                                            : false; // Usunięta rola nie jest przypisana
             return $role;
         });
 
         return Inertia::render('Roles/Index', [
-            'roles' => $rolesWithAssignmentStatus->sortBy('id')->values(), // Posortuj i zresetuj klucze
+            'roles' => $rolesWithAssignmentStatus->values(),
             'flash' => session('flash'),
+            'show_disabled' => $showDisabled,
         ]);
     }
 
@@ -106,17 +119,31 @@ class RolesController extends Controller
     public function destroy(Role $role)
     {
         if ($role->name === 'Kierownik') {
-            return to_route('roles.index')->with('error', 'Nie możesz usunąć roli "Kierownik"!');
+            return to_route('roles.index')->with('error', 'Nie możesz wyłączyć roli "Kierownik"!');
         }
 
         // Sprawdź, czy użytkownik próbuje usunąć rolę, którą sam posiada
-        if (Auth::user()->hasRole($role->name)) {
-             return to_route('roles.index')->with('error', 'Nie możesz usunąć roli, którą sam posiadasz!');
+        if (Auth::hasRole($role->name)) {
+             return to_route('roles.index')->with('error', 'Nie możesz wyłączyć roli, którą sam posiadasz!');
         }
 
         $this->roleService->destroyRole($role);
 
         return to_route('roles.index')
             ->with('success', 'Rola została pomyślnie wyłączona.');
+    }
+
+    /**
+     * Restore the specified soft-deleted role.
+     */
+    public function restore(int $roleId) // Przyjmujemy ID, bo rola może być już usunięta
+    {
+        $role = $this->roleService->restoreRole($roleId);
+
+        if ($role) {
+            return to_route('roles.index')->with('success', 'Rola została pomyślnie przywrócona.');
+        }
+
+        return to_route('roles.index')->with('error', 'Nie udało się przywrócić roli.');
     }
 }

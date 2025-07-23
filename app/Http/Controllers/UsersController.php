@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-// use Illuminate\Http\Request;
+use Illuminate\Http\Request;
 use App\Models\User;
-use Inertia\Inertia; 
 use App\Models\Role;
+use Inertia\Inertia; 
 use App\Services\UserService; 
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\StoreUserRequest;
@@ -23,24 +23,36 @@ class UsersController extends Controller
     /**
      * Display a listing of the users.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')
-                     ->paginate(10)
-                     ->through(fn ($user) => [
-                         'id' => $user->id,
-                         'name' => $user->name,
-                         'login' => $user->login,
-                         'email' => $user->email,
-                         // Sformatuj datę created_at
-                         'created_at' => $user->created_at->format('Y-m-d H:i:s'), // Formatowanie daty
-                         // Pobierz nazwy ról i połącz je w string
-                         'roles' => $user->roles->pluck('name')->implode(', '),
-                     ]);
+        $showDisabled = $request->boolean('show_disabled');
 
-        
+        $usersQuery = User::orderBy('id');
+
+        if ($showDisabled) {
+            $usersQuery->withTrashed();
+        }
+
+        $users = $usersQuery->paginate(10); 
+
+        $users->through(function ($user) {
+            $user->load('roles');
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'created_at' => $user->created_at ? $user->created_at->format('Y-m-d H:i') : null,
+                'updated_at' => $user->updated_at ? $user->updated_at->format('Y-m-d H:i') : null,
+                'deleted_at' => $user->deleted_at,
+            ];
+        });
+
+
         return Inertia::render('Users/Index', [
             'users' => $users,
+            'flash' => session('flash'),
+            'show_disabled' => $showDisabled,
         ]);
     }
 
@@ -112,8 +124,36 @@ class UsersController extends Controller
             return redirect()->route('users.index')->with('error', 'Nie możesz usunąć samego siebie!');
         }
 
+        if ($user->hasRole('admin')) {
+             // Sprawdź, ile aktywnych użytkowników ma rolę 'Kierownik'
+            $adminRole = Role::where('name', 'Kierownik')->first(); 
+            if ($adminRole) {
+                $activeAdminsCount = User::role($adminRole->name)->whereNull('deleted_at')->count();
+
+                if ($activeAdminsCount <= 1) {
+                    return redirect()->route('users.index')->with('error', 'Nie możesz wyłączyć ostatniego aktywnego administratora!');
+                }
+            }
+        }
+
         $user->delete();
 
         return redirect()->route('users.index')->with('success', 'Pracownik został pomyślnie wyłączony.');
+    }
+
+    /**
+     * Restore the specified soft-deleted user.
+     */
+    public function restore(int $userId)
+    {
+        $user = User::withTrashed()->find($userId);
+
+        if ($user) {
+            $user->restore();
+
+            return to_route('users.index')->with('success', 'Użytkownik został pomyślnie przywrócony.');
+        }
+
+        return to_route('users.index')->with('error', 'Nie udało się przywrócić użytkownika.');
     }
 }

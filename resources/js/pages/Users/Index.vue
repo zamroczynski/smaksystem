@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { type User } from '@/types/models';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
 import Pagination from '@/components/Pagination.vue';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 import {
     AlertDialog,
@@ -18,7 +21,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 
 
@@ -30,7 +33,8 @@ const props = defineProps<{
             login: string;
             email: string;
             created_at: string; 
-            roles: string;       
+            roles: string[];
+            deleted_at: string | null;       
         }>;
         links: Array<{
             url: string | null;
@@ -48,6 +52,7 @@ const props = defineProps<{
         success?: string;
         error?: string;
     };
+    show_disabled: boolean;
 }>();
 
 // Usuwanie:
@@ -75,7 +80,12 @@ const deleteUserConfirmed = () => {
                 }
                 isAlertDialogOpen.value = false; 
                 userToDeleteId.value = null; 
-                userToDeleteName.value = ''; 
+                userToDeleteName.value = '';
+                router.get(route('users.index', { show_disabled: showDisabledUsers.value }), {}, {
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ['users', 'show_disabled'],
+                }); 
             },
             onError: (errors) => {
                 toast.error(props.flash?.error || 'Wystąpił nieoczekiwany błąd podczas wyłączania użytkownika.');
@@ -98,18 +108,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const deleteUser = (userId: number) => {
-    if (confirm('Czy na pewno chcesz usunąć tego użytkownika?')) {
-        const form = useForm({});
-        form.delete(route('users.destroy', userId), {
-            onSuccess: () => {
-                toast.success(props.flash?.success || 'Użytkownik został pomyślnie usunięty.');
-            },
-            onError: () => {
-                toast.error(props.flash?.error || 'Wystąpił błąd podczas usuwania użytkownika.');
-            }
-        });
-    }
+const showDisabledUsers = ref(props.show_disabled);
+watch(showDisabledUsers, (newValue) => {
+    router.get(route('users.index', { show_disabled: newValue }), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['users', 'show_disabled'], // Przeładuj tylko te propsy
+    });
+});
+const restoreUser = (userId: number) => {
+    router.post(route('users.restore', userId), {}, {
+        onSuccess: () => {
+            toast.success('Użytkownik został pomyślnie przywrócony.');
+            // Po przywróceniu, przeładuj dane
+            router.get(route('users.index', { show_disabled: showDisabledUsers.value }), {}, {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['users', 'show_disabled'],
+            });
+        },
+        onError: () => {
+            toast.error('Wystąpił błąd podczas przywracania użytkownika.');
+        },
+    });
 };
 </script>
 
@@ -119,41 +140,69 @@ const deleteUser = (userId: number) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Lista Pracowników</h3>
-
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Lista Pracowników</h3>
+                    <div class="flex items-center space-x-2">
+                            <Switch
+                                id="show-disabled-users"
+                                :model-value="showDisabledUsers"
+                                @update:model-value="showDisabledUsers = $event"
+                            />
+                            <Label for="show-disabled-users">Pokaż wyłączonych użytkowników</Label>
+                    </div>
+                </div>
                 <div class="relative w-full overflow-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead class="w-[50px]">ID</TableHead>
+                                <TableHead class="w-[100px]">ID</TableHead>
                                 <TableHead>Nazwa</TableHead>
-                                <TableHead>Login</TableHead>
                                 <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead> <TableHead>Utworzono</TableHead> <TableHead class="text-right">Akcje</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead class="text-right">Akcje</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <template v-if="props.users.data.length">
-                                <TableRow v-for="user in props.users.data" :key="user.id">
-                                    <TableCell class="font-medium">{{ user.id }}</TableCell>
-                                    <TableCell>{{ user.name }}</TableCell>
-                                    <TableCell>{{ user.login }}</TableCell>
-                                    <TableCell>{{ user.email }}</TableCell>
-                                    <TableCell>{{ user.roles }}</TableCell> <TableCell>{{ user.created_at }}</TableCell> <TableCell class="text-right flex items-center justify-end space-x-2">
-                                        <Button as-child variant="outline" size="sm">
-                                            <Link :href="route('users.edit', user.id)">Edytuj</Link>
-                                        </Button>
-                                        <Button @click="confirmDelete(user.id, user.name)" variant="destructive" size="sm">
-                                            Wyłącz
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            </template>
-                            <template v-else>
-                                <TableRow>
-                                    <TableCell colspan="7" class="h-24 text-center">Brak użytkowników do wyświetlenia.</TableCell>
-                                </TableRow>
-                            </template>
+                            <TableRow v-for="user in props.users.data" :key="user.id">
+                                <TableCell class="font-medium">{{ user.id }}</TableCell>
+                                <TableCell>{{ user.name }}</TableCell>
+                                <TableCell>{{ user.email }}</TableCell>
+                                <TableCell>
+                                    <span v-if="user.roles && user.roles.length > 0">
+                                        {{ user.roles.join(', ') }}
+                                    </span>
+                                    <span v-else class="text-gray-500">Brak</span>
+                                </TableCell>
+                                <TableCell>
+                                    <span v-if="user.deleted_at === null" class="text-green-600 font-medium">Aktywny</span>
+                                    <span v-else class="text-red-600 font-medium">Wyłączony</span>
+                                </TableCell>
+                                <TableCell class="text-right flex justify-end space-x-2">
+                                    <Button as-child variant="outline" size="sm" v-if="user.deleted_at === null">
+                                        <Link :href="route('users.edit', user.id)">Edytuj</Link>
+                                    </Button>
+                                    <Button
+                                        v-if="user.deleted_at !== null"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="restoreUser(user.id)"
+                                    >
+                                        Przywróć
+                                    </Button>
+                                    <Button
+                                        v-if="user.deleted_at === null"
+                                        variant="destructive"
+                                        size="sm"
+                                        @click="confirmDelete(user.id, user.name)"
+                                        :disabled="user.id === $page.props.auth.user.id || user.roles.includes('admin')" >
+                                        Wyłącz
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow v-if="props.users.data.length === 0">
+                                <TableCell colspan="6" class="text-center text-gray-500">Brak użytkowników do wyświetlenia.</TableCell>
+                            </TableRow>
                         </TableBody>
                     </Table>
                 </div>
