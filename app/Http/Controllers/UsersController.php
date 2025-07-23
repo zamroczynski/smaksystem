@@ -2,23 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+// use Illuminate\Http\Request;
 use App\Models\User;
 use Inertia\Inertia; 
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Hash; 
-use Spatie\Permission\Models\Role; 
+use Spatie\Permission\Models\Role;
+use App\Services\UserService; 
+use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\StoreUserRequest;
 
 
 
 class UsersController extends Controller
 {
+    protected $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Display a listing of the users.
      */
     public function index()
     {
-        $users = User::with('roles') // Wczytaj relację 'roles'
+        $users = User::with('roles')
                      ->paginate(10)
                      ->through(fn ($user) => [
                          'id' => $user->id,
@@ -53,31 +61,12 @@ class UsersController extends Controller
     /**
      * Store a newly created user in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        // Walidacja danych wejściowych
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'login' => 'required|string|max:255|unique:users,login', // Login musi być unikalny
-            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')], // Email może być pusty, ale jeśli jest, to musi być unikalny i poprawny
-            'password' => 'required|string|min:8', // Hasło wymagane i min. 8 znaków
-            'role_name' => ['nullable', 'string', Rule::exists('roles', 'name')], 
-        ]);
+        $validatedData = $request->validated();
 
-        // Utwórz nowego użytkownika
-        $user = User::create([
-            'name' => $request->name,
-            'login' => $request->login,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $this->userService->create($validatedData);
 
-        // Przypisz rolę, jeśli została wybrana
-        if ($request->filled('role_name')) {
-            $user->assignRole($request->role_name);
-        }
-
-        // Przekieruj z komunikatem sukcesu
         return to_route('users.index')
             ->with('success', 'Użytkownik został pomyślnie dodany.');
     }
@@ -105,53 +94,11 @@ class UsersController extends Controller
     /**
      * Update the specified user in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        // Walidacja dla pól aktualizacji (nazwa, login, email)
-        $validationRules = [
-            'name' => 'required|string|max:255',
-            'login' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('users', 'login')->ignore($user->id), // Login unikalny, ale ignoruj aktualnego użytkownika
-            ],
-            'email' => [
-                'nullable',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($user->id), // Email unikalny, ale ignoruj aktualnego użytkownika
-            ],
-            'role_name' => ['nullable', 'string', Rule::exists('roles', 'name')], // Rola opcjonalna, ale musi istnieć
-        ];
+        $validatedData = $request->validated();
 
-        // Dodaj walidację hasła tylko, jeśli pole 'password' jest wypełnione
-        if ($request->filled('password')) {
-            $validationRules['password'] = 'string|min:8|nullable'; // Opcjonalne hasło, min. 8 znaków
-        }
-
-        $request->validate($validationRules);
-
-        // Aktualizuj podstawowe dane użytkownika
-        $user->name = $request->name;
-        $user->login = $request->login;
-        $user->email = $request->email;
-
-        // Zmień hasło tylko, jeśli zostało podane
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-
-        $user->save(); // Zapisz zmiany
-
-        // Zaktualizuj role użytkownika
-        if ($request->filled('role_name')) {
-            $user->syncRoles([$request->role_name]); // syncRoles zastępuje bieżące role nowymi
-        } else {
-            // Jeśli rola nie została wybrana w formularzu, usuń wszystkie role
-            $user->syncRoles([]);
-        }
+        $this->userService->update($user, $validatedData);
 
         return redirect()->route('users.index')->with('success', 'Dane pracownika zostały pomyślnie zaktualizowane.');
     }
