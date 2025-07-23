@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
     <AuthLayout :title="title" :description="description">
-        <Toaster />
+        <Toaster rich-colors />
         <slot />
     </AuthLayout>
 </template>
