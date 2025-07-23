@@ -78,14 +78,8 @@ class UsersController extends Controller
         }
 
         // Przekieruj z komunikatem sukcesu
-        // return redirect()->route('users.index')->with('success', 'Użytkownik został pomyślnie dodany.');
         return to_route('users.index')
             ->with('success', 'Użytkownik został pomyślnie dodany.');
-            // Inertia automatycznie wykryje to przekierowanie i odświeży stronę.
-            // Domyślne przekierowanie Inertii jest wystarczające, by odświeżyć dane,
-            // jeśli strona `/users` jest celem tego przekierowania.
-            // Problem zazwyczaj leży w tym, że Inertia nie odświeża CAŁEJ aplikacji,
-            // a jedynie komponent, więc czasem potrzebujemy czegoś więcej.
     }
 
     /**
@@ -93,8 +87,18 @@ class UsersController extends Controller
      */
     public function edit(User $user)
     {
+        $roles = Role::all(['id', 'name']);
+
         return Inertia::render('Users/Edit', [
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'login' => $user->login,
+                'email' => $user->email,
+                // Pobierz bieżącą rolę użytkownika, jeśli istnieje
+                'current_role' => $user->getRoleNames()->first(),
+            ],
+            'roles' => $roles, // Przekaż wszystkie dostępne role
         ]);
     }
 
@@ -103,25 +107,53 @@ class UsersController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $request->validate([
+        // Walidacja dla pól aktualizacji (nazwa, login, email)
+        $validationRules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'login' => 'required|string|max:255|unique:users,login,' . $user->id,
-            // Dodaj walidację dla innych pól, które będziesz edytować, np. dla ról
-        ]);
+            'login' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'login')->ignore($user->id), // Login unikalny, ale ignoruj aktualnego użytkownika
+            ],
+            'email' => [
+                'nullable',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id), // Email unikalny, ale ignoruj aktualnego użytkownika
+            ],
+            'role_name' => ['nullable', 'string', Rule::exists('roles', 'name')], // Rola opcjonalna, ale musi istnieć
+        ];
 
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'login' => $request->login,
-            // Zaktualizuj inne pola
-        ]);
+        // Dodaj walidację hasła tylko, jeśli pole 'password' jest wypełnione
+        if ($request->filled('password')) {
+            $validationRules['password'] = 'string|min:8|nullable'; // Opcjonalne hasło, min. 8 znaków
+        }
 
-        // Jeśli używasz Spatie/laravel-permission do ról:
-        // Pamiętaj, aby dodać import dla Spatie\Permission\Models\Role
-        // $user->syncRoles($request->roles); // Zakładając, że $request->roles to tablica nazw ról
+        $request->validate($validationRules);
 
-        return redirect()->route('users.index')->with('success', 'Użytkownik zaktualizowany pomyślnie.');
+        // Aktualizuj podstawowe dane użytkownika
+        $user->name = $request->name;
+        $user->login = $request->login;
+        $user->email = $request->email;
+
+        // Zmień hasło tylko, jeśli zostało podane
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save(); // Zapisz zmiany
+
+        // Zaktualizuj role użytkownika
+        if ($request->filled('role_name')) {
+            $user->syncRoles([$request->role_name]); // syncRoles zastępuje bieżące role nowymi
+        } else {
+            // Jeśli rola nie została wybrana w formularzu, usuń wszystkie role
+            $user->syncRoles([]);
+        }
+
+        return redirect()->route('users.index')->with('success', 'Dane pracownika zostały pomyślnie zaktualizowane.');
     }
 
     /**

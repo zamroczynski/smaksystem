@@ -6,7 +6,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
-import Pagination from '@/components/Pagination.vue'; // Upewnij się, że ścieżka jest poprawna
+import Pagination from '@/components/Pagination.vue'; 
 
 const props = defineProps<{
     users: {
@@ -15,8 +15,8 @@ const props = defineProps<{
             name: string;
             login: string;
             email: string;
-            created_at: string; // Dodano created_at
-            roles: string;       // Dodano roles
+            created_at: string; 
+            roles: string;       
         }>;
         links: Array<{
             url: string | null;
