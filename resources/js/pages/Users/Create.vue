@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -10,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label'; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; 
 import { toast } from 'vue-sonner';
+
+import { EyeIcon, EyeOffIcon } from 'lucide-vue-next';
 
 const props = defineProps<{
     roles: Array<{ id: number; name: string }>; 
@@ -32,7 +35,6 @@ const submit = () => {
         onSuccess: () => {
             toast.success(props.flash?.success || 'Użytkownik został pomyślnie dodany.');
             form.reset();
- 
             router.reload({ only: ['users'] }); // Odświeża tylko prop 'users' na aktualnej stronie
         },
         onError: (errors) => {
@@ -43,6 +45,12 @@ const submit = () => {
             }
         },
     });
+};
+
+const showPassword = ref(false);
+
+const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -90,7 +98,24 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                     <div>
                         <Label for="password">Hasło <span class="text-red-500">*</span></Label>
-                        <Input id="password" type="password" v-model="form.password" required />
+                        <div class="relative">
+                            <Input
+                                id="password"
+                                :type="showPassword ? 'text' : 'password'"
+                                v-model="form.password"
+                                required
+                                class="pr-10" />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                class="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                @click="togglePasswordVisibility"
+                            >
+                                <EyeIcon v-if="!showPassword" class="h-4 w-4 text-gray-500" />
+                                <EyeOffIcon v-else class="h-4 w-4 text-gray-500" />
+                            </Button>
+                        </div>
                         <p v-if="form.errors.password" class="text-sm text-red-500 mt-1">{{ form.errors.password }}</p>
                     </div>
 

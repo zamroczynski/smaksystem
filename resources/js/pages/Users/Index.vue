@@ -6,7 +6,21 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
-import Pagination from '@/components/Pagination.vue'; 
+import Pagination from '@/components/Pagination.vue';
+
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ref } from 'vue';
+
+
 
 const props = defineProps<{
     users: {
@@ -36,13 +50,50 @@ const props = defineProps<{
     };
 }>();
 
+// Usuwanie:
+const form = useForm({});
+const isAlertDialogOpen = ref(false);
+const userToDeleteId = ref<number | null>(null);
+const userToDeleteName = ref<string>('');
+
+const confirmDelete = (userId: number, userName: string) => {
+    userToDeleteId.value = userId;
+    userToDeleteName.value = userName;
+    isAlertDialogOpen.value = true;
+};
+
+const deleteUserConfirmed = () => {
+    if (userToDeleteId.value !== null) {
+        form.delete(route('users.destroy', userToDeleteId.value), {
+            onSuccess: () => {
+                if (props.flash?.error) {
+                    toast.error(props.flash.error);
+                } else if (props.flash?.success) {
+                    toast.success(props.flash.success);
+                } else {
+                    toast.success('Operacja zakończona sukcesem.');
+                }
+                isAlertDialogOpen.value = false; 
+                userToDeleteId.value = null; 
+                userToDeleteName.value = ''; 
+            },
+            onError: (errors) => {
+                toast.error(props.flash?.error || 'Wystąpił nieoczekiwany błąd podczas wyłączania użytkownika.');
+                isAlertDialogOpen.value = false; // Zamknij dialog nawet w przypadku błędu
+                userToDeleteId.value = null;
+                userToDeleteName.value = '';
+            },
+        });
+    }
+};
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Panel nawigacyjny',
         href: '/dashboard',
     },
     {
-        title: 'Zarządzanie Użytkownikami',
+        title: 'Zarządzanie pracownikami',
         href: '/users',
     },
 ];
@@ -63,12 +114,12 @@ const deleteUser = (userId: number) => {
 </script>
 
 <template>
-    <Head title="Zarządzanie Użytkownikami" />
+    <Head title="Zarządzanie Pracownikami" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Lista Użytkowników</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Lista Pracowników</h3>
 
                 <div class="relative w-full overflow-auto">
                     <Table>
@@ -92,7 +143,7 @@ const deleteUser = (userId: number) => {
                                         <Button as-child variant="outline" size="sm">
                                             <Link :href="route('users.edit', user.id)">Edytuj</Link>
                                         </Button>
-                                        <Button @click="deleteUser(user.id)" variant="destructive" size="sm">
+                                        <Button @click="confirmDelete(user.id, user.name)" variant="destructive" size="sm">
                                             Usuń
                                         </Button>
                                     </TableCell>
@@ -116,5 +167,21 @@ const deleteUser = (userId: number) => {
                 </div>
             </div>
         </div>
+        <AlertDialog :open="isAlertDialogOpen" @update:open="isAlertDialogOpen = $event">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Czy na pewno chcesz wyłączyć pracownika?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Ta akcja spowoduje wyłączenie konta użytkownika **{{ userToDeleteName }}**. Użytkownik nie będzie mógł się zalogować. Konto będzie można przywrócić w przyszłości.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel @click="isAlertDialogOpen = false">Anuluj</AlertDialogCancel>
+                    <AlertDialogAction @click="deleteUserConfirmed" class="bg-red-600 text-white hover:bg-red-700">
+                        Wyłącz
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </AppLayout>
 </template>

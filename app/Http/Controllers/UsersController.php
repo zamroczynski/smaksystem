@@ -9,8 +9,7 @@ use Spatie\Permission\Models\Role;
 use App\Services\UserService; 
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\StoreUserRequest;
-
-
+use Illuminate\Support\Facades\Auth;
 
 class UsersController extends Controller
 {
@@ -108,8 +107,13 @@ class UsersController extends Controller
      */
     public function destroy(User $user)
     {
+        // Sprawdź, czy użytkownik próbuje usunąć samego siebie
+        if (Auth::id() === $user->id) {
+            return redirect()->route('users.index')->with('error', 'Nie możesz usunąć samego siebie!');
+        }
+
         $user->delete();
 
-        return redirect()->route('users.index')->with('success', 'Użytkownik usunięty pomyślnie.');
+        return redirect()->route('users.index')->with('success', 'Pracownik został pomyślnie wyłączony.');
     }
 }
