@@ -144,7 +144,7 @@ const deleteUser = (userId: number) => {
                                             <Link :href="route('users.edit', user.id)">Edytuj</Link>
                                         </Button>
                                         <Button @click="confirmDelete(user.id, user.name)" variant="destructive" size="sm">
-                                            Usuń
+                                            Wyłącz
                                         </Button>
                                     </TableCell>
                                 </TableRow>

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 // use Illuminate\Http\Request;
 use App\Models\User;
 use Inertia\Inertia; 
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use App\Services\UserService; 
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\StoreUserRequest;

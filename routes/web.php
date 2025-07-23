@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\RolesController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -16,12 +17,11 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'can:Edycja pracowników'])->group(function () {
-    Route::get('/users', [UsersController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UsersController::class, 'create'])->name('users.create'); 
-    Route::post('/users', [UsersController::class, 'store'])->name('users.store');
-    Route::get('/users/{user}/edit', [UsersController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [UsersController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UsersController::class, 'destroy'])->name('users.destroy');
+    Route::resource('users', UsersController::class)->except(['show']);
+});
+
+Route::middleware(['auth', 'can:Edycja ról'])->group(function () {
+    Route::resource('roles', RolesController::class)->except(['show']);
 });
 
 

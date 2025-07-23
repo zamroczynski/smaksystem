@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 // import { BookOpen, Folder } from 'lucide-vue-next';
-import { LayoutGrid, User } from 'lucide-vue-next';
+import { LayoutGrid, User, Award } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -19,6 +19,11 @@ const mainNavItems: NavItem[] = [
         title: 'Pracownicy',
         href: '/users',
         icon: User,
+    },
+    {
+        title: 'Role',
+        href: '/roles',
+        icon: Award,
     },
 ];
 

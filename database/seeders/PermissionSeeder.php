@@ -13,8 +13,7 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        //Pracownicy
-        Permission::create(['name' => 'Przegląd pracowników']);
         Permission::create(['name' => 'Edycja pracowników']);
+        Permission::create(['name' => 'Edycja ról']);
     }
 }
