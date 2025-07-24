@@ -208,13 +208,13 @@ const deleteRoleConfirmed = () => {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz wyłączyć rolę?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Ta akcja spowoduje **wyłączenie roli "{{ roleToDeleteName }}"** i nie będzie ona już dostępna do
+                        Ta akcja spowoduje wyłączenie roli "{{ roleToDeleteName }}" i nie będzie ona już dostępna do
                         przypisania.
                         <template v-if="isRoleAssignedToUsers">
                             <br><br>
                             <span class="font-semibold text-red-500">WAŻNE:</span> Rola "{{ roleToDeleteName }}" jest
-                            obecnie przypisana do jednego lub więcej pracowników. Po wyłączeniu roli, **zostanie ona
-                            automatycznie odpięta od wszystkich kont pracowników, które ją posiadają.**
+                            obecnie przypisana do jednego lub więcej pracowników. Po wyłączeniu roli, zostanie ona
+                            automatycznie odpięta od wszystkich kont pracowników, które ją posiadają.
                             Pracownicy ci utracą uprawnienia związane z tą rolą.
                         </template>
                         <br><br>

@@ -16,5 +16,6 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'Edycja pracowników']);
         Permission::create(['name' => 'Edycja ról']);
         Permission::create(['name' => 'Moje Preferencje']);
+        Permission::create(['name' => 'Harmonogram Zmian']);
     }
 }
