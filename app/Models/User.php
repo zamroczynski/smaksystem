@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -57,5 +58,13 @@ class User extends Authenticatable
     public function findForAuth($username)
     {
         return static::where('login', $username)->first();
+    }
+
+    /**
+     * Get the preferences for the user.
+     */
+    public function preferences(): HasMany
+    {
+        return $this->hasMany(Preference::class);
     }
 }

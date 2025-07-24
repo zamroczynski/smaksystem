@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 // import { BookOpen, Folder } from 'lucide-vue-next';
-import { LayoutGrid, User, Award } from 'lucide-vue-next';
+import { LayoutGrid, User, Award, FileSliders } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -34,6 +34,12 @@ const allNavItems: NavItemWithPermission[] = [
         href: '/roles',
         icon: Award,
         permission: 'Edycja ról',
+    },
+    {
+        title: 'Moje Preferencje',
+        href: '/preferences',
+        icon: FileSliders,
+        permission: 'Preferencje',
     },
 ];
 

@@ -26,3 +26,12 @@ export interface Permission {
     created_at?: string;
     updated_at?: string;
 }
+
+export interface Preference {
+    id: number;
+    description: string | null;
+    date_from: string; // Format YYYY-MM-DD
+    date_to: string; // Format YYYY-MM-DD
+    is_active: boolean;
+    deleted_at: string | null;
+}
