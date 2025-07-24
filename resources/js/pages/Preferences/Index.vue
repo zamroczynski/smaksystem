@@ -30,6 +30,7 @@ const props = defineProps<{
             date_to: string;
             is_active: boolean;
             deleted_at: string | null;
+            availability: boolean;
         }>;
         links: Array<{
             url: string | null;
@@ -119,6 +120,7 @@ const restorePreference = (preferenceId: number) => {
 </script>
 
 <template>
+
     <Head title="Moje Preferencje" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -127,7 +129,8 @@ const restorePreference = (preferenceId: number) => {
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Moje Preferencje Grafiku</h3>
                     <div class="flex items-center space-x-2">
-                        <Switch id="show-all-preferences" :model-value="showInactiveOrDeleted" @update:model-value="showInactiveOrDeleted = $event" />
+                        <Switch id="show-all-preferences" :model-value="showInactiveOrDeleted"
+                            @update:model-value="showInactiveOrDeleted = $event" />
                         <Label for="show-all-preferences">Pokaż tylko nieaktualne i wyłączone</Label>
                     </div>
                 </div>
@@ -137,18 +140,29 @@ const restorePreference = (preferenceId: number) => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead class="w-[100px]">ID</TableHead>
-                                <TableHead>Opis</TableHead>
                                 <TableHead>Data od</TableHead>
                                 <TableHead>Data do</TableHead>
+                                <TableHead>Opis</TableHead>
+                                <TableHead class="text-center">Dyspozycja</TableHead> 
+                                <TableHead class="text-center">Status</TableHead>
                                 <TableHead class="text-right">Akcje</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow v-for="preference in props.preferences.data" :key="preference.id">
                                 <TableCell class="font-medium">{{ preference.id }}</TableCell>
-                                <TableCell>{{ preference.description || 'Brak opisu' }}</TableCell>
                                 <TableCell>{{ preference.date_from }}</TableCell>
                                 <TableCell>{{ preference.date_to }}</TableCell>
+                                <TableCell>{{ preference.description || 'Brak opisu' }}</TableCell>
+                                <TableCell class="text-center"> <span v-if="preference.availability"
+                                        class="text-green-600 font-semibold">Chce pracować</span>
+                                    <span v-else class="text-red-600 font-semibold">Nie mogę pracować</span>
+                                </TableCell>
+                                <TableCell class="text-center">
+                                        <span v-if="preference.deleted_at" class="text-red-500 font-semibold">Usunięta</span>
+                                        <span v-else-if="preference.is_active" class="text-green-500 font-semibold">Aktywna</span>
+                                        <span v-else class="text-gray-500 font-semibold">Nieaktywna (data minęła)</span>
+                                    </TableCell>
                                 <TableCell class="text-right flex justify-end space-x-2">
                                     <template v-if="preference.is_active">
                                         <Button as-child variant="outline" size="sm">
@@ -166,7 +180,8 @@ const restorePreference = (preferenceId: number) => {
                                 </TableCell>
                             </TableRow>
                             <TableRow v-if="props.preferences.data.length === 0">
-                                <TableCell colspan="5" class="text-center text-gray-500">Brak preferencji do wyświetlenia.</TableCell>
+                                <TableCell colspan="5" class="text-center text-gray-500">Brak preferencji do
+                                    wyświetlenia.</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
@@ -192,7 +207,8 @@ const restorePreference = (preferenceId: number) => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel @click="isAlertDialogOpen = false">Anuluj</AlertDialogCancel>
-                    <AlertDialogAction @click="deletePreferenceConfirmed" class="bg-red-600 text-white hover:bg-red-700">
+                    <AlertDialogAction @click="deletePreferenceConfirmed"
+                        class="bg-red-600 text-white hover:bg-red-700">
                         Wyłącz Preferencję
                     </AlertDialogAction>
                 </AlertDialogFooter>

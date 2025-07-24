@@ -20,6 +20,7 @@ class Preference extends Model
         'date_to',
         'user_id',
         'description',
+        'availability',
     ];
 
     /**
@@ -30,6 +31,7 @@ class Preference extends Model
     protected $casts = [
         'date_from' => 'date',
         'date_to' => 'date',
+        'availability' => 'boolean',
     ];
 
     /**

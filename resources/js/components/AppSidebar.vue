@@ -39,7 +39,7 @@ const allNavItems: NavItemWithPermission[] = [
         title: 'Moje Preferencje',
         href: '/preferences',
         icon: FileSliders,
-        permission: 'Preferencje',
+        permission: 'Moje Preferencje',
     },
 ];
 

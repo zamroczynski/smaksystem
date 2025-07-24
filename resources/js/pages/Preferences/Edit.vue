@@ -23,6 +23,7 @@ interface Preference {
     date_from: string;
     date_to: string;
     description: string | undefined;
+    availability: boolean;
 }
 
 const props = defineProps<{
@@ -43,6 +44,7 @@ const form = useForm({
     date_from: null as string | null,
     date_to: null as string | null,
     description: props.preference.description,
+    availability: props.preference.availability,
 });
 
 const dateRange = ref({
@@ -111,6 +113,22 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
+                        <div>
+                            <Label>Dyspozycja na wybrane dni <span class="text-red-500">*</span></Label>
+                            <RadioGroup v-model="form.availability" class="flex gap-4 mt-2">
+                                <div class="flex items-center space-x-2">
+                                    <RadioGroupItem id="availability-edit-true" :value="true" />
+                                    <Label for="availability-edit-true">Chcę przyjść do pracy</Label>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <RadioGroupItem id="availability-edit-false" :value="false" />
+                                    <Label for="availability-edit-false">Nie mogę przyjść do pracy</Label>
+                                </div>
+                            </RadioGroup>
+                            <div v-if="form.errors.availability" class="text-red-500 text-sm mt-1">
+                                {{ form.errors.availability }}
+                            </div>
+                        </div>
                         <div>
                             <Label for="date_range"
                                 :class="{ 'text-red-500': form.errors['date_from'] || form.errors['date_to'] }">

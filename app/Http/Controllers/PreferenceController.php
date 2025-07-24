@@ -26,7 +26,7 @@ class PreferenceController extends Controller
         $preferencesQuery = $user->preferences()->orderBy('date_from', 'desc');
 
         if ($showInactiveOrDeleted) {
-            // Jeśli show_all jest true, chcemy pokazać preferencje:
+            // Jeśli showInactiveOrDeleted jest true, chcemy pokazać preferencje:
             // 1. Które są usunięte (Soft Deleted)
             // 2. Których data_to minęła (są nieaktywne, ale nie usunięte)
             $preferencesQuery->withTrashed()
@@ -50,10 +50,11 @@ class PreferenceController extends Controller
             return [
                 'id' => $preference->id,
                 'description' => $preference->description,
-                'date_from' => $preference->date_from->format('Y-m-d'), // Formatujemy daty
+                'date_from' => $preference->date_from->format('Y-m-d'),
                 'date_to' => $preference->date_to->format('Y-m-d'),
                 'is_active' => $dateTo->gte(Carbon::today()) && $preference->deleted_at === null,
                 'deleted_at' => $preference->deleted_at,
+                'availability' => $preference->availability,
             ];
         });
 
@@ -86,6 +87,7 @@ class PreferenceController extends Controller
             'date_from' => $validatedData['date_from'],
             'date_to' => $validatedData['date_to'],
             'description' => $validatedData['description'] ?? null,
+            'availability' => $validatedData['availability'],
         ]);
 
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie dodana.');
@@ -106,6 +108,7 @@ class PreferenceController extends Controller
                 'date_from' => $preference->date_from->format('Y-m-d'),
                 'date_to' => $preference->date_to->format('Y-m-d'),
                 'description' => $preference->description,
+                'availability' => $preference->availability,
             ],
         ]);
     }
@@ -125,6 +128,7 @@ class PreferenceController extends Controller
             'date_from' => $validatedData['date_from'],
             'date_to' => $validatedData['date_to'],
             'description' => $validatedData['description'] ?? null,
+            'availability' => $validatedData['availability'],
         ]);
 
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie zaktualizowana.');

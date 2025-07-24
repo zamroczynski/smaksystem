@@ -11,7 +11,7 @@ class StorePreferenceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('Preferencje');
+        return $this->user()->can('Moje Preferencje');
     }
 
     /**
@@ -25,6 +25,7 @@ class StorePreferenceRequest extends FormRequest
             'date_from' => ['required', 'date', 'after_or_equal:today'],
             'date_to' => ['required', 'date', 'after_or_equal:date_from'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'availability' => ['required', 'boolean'],
         ];
     }
 
@@ -44,6 +45,8 @@ class StorePreferenceRequest extends FormRequest
             'date_to.after_or_equal' => 'Data zakończenia musi być późniejsza lub równa dacie rozpoczęcia.',
             'description.string' => 'Opis musi być tekstem.',
             'description.max' => 'Opis nie może przekraczać :max znaków.',
+            'availability.required' => 'Status dostępności jest wymagany.',
+            'availability.boolean' => 'Status dostępności musi być wartością prawda/fałsz.',
         ];
     }
 }

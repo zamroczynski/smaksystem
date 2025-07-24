@@ -29,7 +29,7 @@ Route::middleware(['auth', 'can:Edycja ról'])->group(function () {
         ->name('roles.restore');
 });
 
-Route::middleware(['auth', 'can:Preferencje'])->group(function () {
+Route::middleware(['auth', 'can:Moje Preferencje'])->group(function () {
     Route::resource('preferences', PreferenceController::class)->except(['show']);
     Route::post('/preferences/{roleId}/restore', [PreferenceController::class, 'restore'])
         ->name('preferences.restore');
