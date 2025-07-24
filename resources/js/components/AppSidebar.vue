@@ -4,12 +4,20 @@ import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 // import { BookOpen, Folder } from 'lucide-vue-next';
 import { LayoutGrid, User, Award } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import { computed } from 'vue';
 
-const mainNavItems: NavItem[] = [
+const page = usePage();
+const userPermissions = computed(() => page.props.auth.role_permissions || []);
+
+interface NavItemWithPermission extends NavItem {
+    permission?: string;
+}
+
+const allNavItems: NavItemWithPermission[] = [
     {
         title: 'Pulpit nawigacyjny',
         href: '/dashboard',
@@ -19,13 +27,26 @@ const mainNavItems: NavItem[] = [
         title: 'Pracownicy',
         href: '/users',
         icon: User,
+        permission: 'Edycja pracowników',
     },
     {
         title: 'Role',
         href: '/roles',
         icon: Award,
+        permission: 'Edycja ról',
     },
 ];
+
+const filteredNavItems = computed(() => {
+    return allNavItems.filter(item => {
+        // Jeśli element nie ma określonego uprawnienia, jest zawsze widoczny (np. Pulpit nawigacyjny)
+        if (!item.permission) {
+            return true;
+        }
+        // Sprawdź, czy użytkownik posiada wymagane uprawnienie
+        return userPermissions.value.includes(item.permission);
+    });
+});
 
 // const footerNavItems: NavItem[] = [
 //     {
@@ -56,7 +77,7 @@ const mainNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="filteredNavItems" />
         </SidebarContent>
 
         <SidebarFooter>

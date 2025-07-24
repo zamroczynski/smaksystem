@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use Illuminate\Support\Facades\Auth;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -38,6 +39,14 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $rolePermissions = [];
+        if ($user && $user->roles->isNotEmpty()) {
+            /** @var App\Models\Role $firstRole */
+            $firstRole = $user->roles->first();
+            $rolePermissions = $firstRole->permissions->pluck('name')->toArray();
+        }
 
         return [
             ...parent::share($request),
@@ -45,6 +54,7 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'role_permissions' => $rolePermissions,
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
@@ -52,8 +62,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
             ],
         ];
     }
