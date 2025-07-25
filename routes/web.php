@@ -6,6 +6,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\ShiftTemplateController;
+use App\Http\Controllers\ScheduleController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -42,5 +43,12 @@ Route::middleware(['auth', 'can:Harmonogram Zmian'])->group(function () {
         ->name('shift-templates.restore');
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+Route::middleware(['auth', 'can:Edycja Grafików Pracy'])->group(function () {
+    Route::resource('schedules', ScheduleController::class);
+    Route::post('/schedules/{schedule}/restore', [ScheduleController::class, 'restore'])->name('schedules.restore');
+    Route::post('/schedules/{schedule}/publish', [ScheduleController::class, 'publish'])->name('schedules.publish');
+    Route::post('/schedules/{schedule}/unpublish', [ScheduleController::class, 'unpublish'])->name('schedules.unpublish');
+});
+
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

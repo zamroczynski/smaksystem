@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         
         $this->call(PermissionSeeder::class);
         $this->call(RoleSeeder::class);
+        $this->call(ShiftTemplateSeeder::class);
 
         $user = User::factory()->create([
             'login' => 'admin',
@@ -25,7 +26,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $user->assignRole('Kierownik');
-        User::factory(5)->create();
+        User::factory(20)->employee()->create();
 
     }
 }

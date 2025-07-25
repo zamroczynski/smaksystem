@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; 
 
 class ShiftTemplate extends Model
 {
@@ -23,4 +25,20 @@ class ShiftTemplate extends Model
         'duration_hours' => 'float',
         'required_staff_count' => 'integer',
     ];
+
+    /**
+     * Get the schedule assignments for the shift template.
+     */
+    public function scheduleAssignments(): HasMany // Dodaj tę metodę
+    {
+        return $this->hasMany(ScheduleAssignment::class);
+    }
+
+    /**
+     * The schedules that belong to the shift template.
+     */
+    public function schedules(): BelongsToMany // Dodaj tę metodę
+    {
+        return $this->belongsToMany(Schedule::class, 'schedule_shift_templates');
+    }
 }

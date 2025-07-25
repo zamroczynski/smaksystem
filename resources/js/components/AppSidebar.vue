@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 // import { BookOpen, Folder } from 'lucide-vue-next';
-import { LayoutGrid, User, Award, FileSliders, AlarmClockPlus } from 'lucide-vue-next';
+import { LayoutGrid, User, Award, FileSliders, AlarmClockPlus, CalendarClock } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -46,6 +46,12 @@ const allNavItems: NavItemWithPermission[] = [
         href: '/shift-templates',
         icon: AlarmClockPlus,
         permission: 'Harmonogram Zmian',
+    },
+    {
+        title: 'Tworzenie Grafików pracy',
+        href: '/schedules',
+        icon: CalendarClock,
+        permission: 'Edycja Grafików Pracy',
     },
 ];
 

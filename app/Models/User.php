@@ -67,4 +67,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Preference::class);
     }
+
+    /**
+     * Get the schedule assignments for the user.
+     */
+    public function scheduleAssignments(): HasMany // Dodaj tę metodę
+    {
+        return $this->hasMany(ScheduleAssignment::class);
+    }
 }

@@ -5,6 +5,8 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\User;
+use Spatie\Permission\Models\Role; 
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -24,13 +26,26 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'login' => fake()->unique()->firstName(),
-            'name' => fake()->name(),
+            'login' => fake()->unique()->userName(),
+            'name' => fake()->firstName(),
             'email' => fake()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Indicate that the user should be assigned the "Pracownik" role.
+     */
+    public function employee(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $role = Role::where('name', 'Pracownik')->first();
+            if ($role) {
+                $user->assignRole($role);
+            }
+        });
     }
 
     /**
