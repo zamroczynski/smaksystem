@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'vue-sonner';
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, nextTick } from 'vue'; // Dodano nextTick
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Table,
@@ -73,20 +73,41 @@ watch(
     { deep: true },
 );
 
-// Zmieniamy typ form.assignments, aby zawsze trzymał string lub null dla id użytkownika
-// Konwersja na number nastąpi w funkcji transform() przed wysłaniem
 const form = useForm({
     name: props.schedule.name,
     period_start_date: props.schedule.period_start_date,
     status: props.schedule.status,
-    // Konwersja initialAssignments na stringi dla kluczy i wartości user_id
     assignments: Object.fromEntries(
         Object.entries(props.initialAssignments).map(([key, value]) => [key, value !== null ? String(value) : null])
-    ) as Record<string, string | null>, // Jawne rzutowanie typu
+    ) as Record<string, string | null>,
 });
 
-// Lokalny stan błędów walidacji dla przypisań, jeśli potrzebne
 const localValidationErrors = ref<Record<string, string | null>>({});
+
+// Stan do kontrolowania, która komórka jest edytowana
+const editingCell = ref<{ shiftTemplateId: number; date: string; position: number } | null>(null);
+
+// Funkcja do aktywowania edycji komórki
+const activateEdit = (shiftTemplateId: number, date: string, position: number) => {
+    editingCell.value = { shiftTemplateId, date, position };
+    // Opcjonalnie: automatyczne otwarcie Selecta po aktywacji edycji
+    // Może wymagać dostępu do referencji do komponentu Select
+    // nextTick(() => { /* logika otwarcia Select */ });
+};
+
+// Funkcja do sprawdzania, czy dana komórka jest w trybie edycji
+const isEditing = (shiftTemplateId: number, date: string, position: number): boolean => {
+    return (
+        editingCell.value?.shiftTemplateId === shiftTemplateId &&
+        editingCell.value?.date === date &&
+        editingCell.value?.position === position
+    );
+};
+
+// Funkcja do dezaktywacji edycji (np. po wybraniu wartości lub kliknięciu poza)
+const deactivateEdit = () => {
+    editingCell.value = null;
+};
 
 // Funkcja do dzielenia tablicy na kawałki (chunks)
 const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
@@ -103,37 +124,30 @@ const monthDayChunks = computed(() => {
 });
 
 // Funkcja do pobierania przypisanego użytkownika dla danego pola
-// Zwraca string (ID użytkownika) lub null
 const getAssignedUser = (shiftTemplateId: number, date: string, position: number): string | null => {
     const key = `${shiftTemplateId}_${date}_${position}`;
-    // Upewniamy się, że zwracamy string lub null
     const assignedId = form.assignments[key];
-    // Jeśli wartość jest null lub undefined, zwracamy "-1" dla opcji "Brak"
     return assignedId !== undefined && assignedId !== null ? String(assignedId) : "-1";
 };
 
 // Funkcja do ustawiania przypisanego użytkownika
-// Przyjmuje string (ID użytkownika) lub null
 const setAssignment = (shiftTemplateId: number, date: string, position: number, userId: string | null) => {
     const key = `${shiftTemplateId}_${date}_${position}`;
-    // Sprawdzamy, czy użytkownik wybrał opcję "Brak" (teraz to "-1")
     if (userId === "-1" || userId === null || userId === '') {
         const newAssignments = { ...form.assignments };
         delete newAssignments[key];
         form.assignments = newAssignments;
     } else {
-        // userId jest już stringiem, więc przypisujemy bezpośrednio
         form.assignments = {
             ...form.assignments,
-            [key]: userId, // Przypisujemy string
+            [key]: userId,
         };
     }
-    // Wyczyszczenie błędu walidacji dla tej komórki po zmianie
     localValidationErrors.value[key] = null;
+    deactivateEdit(); // Dezaktywuj edycję po wybraniu wartości
 };
 
 const getAssignmentError = (shiftTemplateId: number, date: string, position: number): string | null => {
-    // Klucz do porównania w localValidationErrors
     const compositeKey = `${shiftTemplateId}_${date}_${position}`;
     if (localValidationErrors.value[compositeKey]) {
         return localValidationErrors.value[compositeKey];
@@ -150,10 +164,10 @@ const getAssignmentError = (shiftTemplateId: number, date: string, position: num
                         assignment_date: parts[1],
                         position: parseInt(parts[2]),
                         user_id: parseInt(value as string),
-                        compositeKey: key 
+                        compositeKey: key
                     };
                 });
-            
+
             const errorIndex = parseInt(errorKey.split('.')[1]);
 
             if (!isNaN(errorIndex) && assignmentsAsArray[errorIndex] && assignmentsAsArray[errorIndex].compositeKey === compositeKey) {
@@ -181,11 +195,11 @@ const getAvailabilityClass = (userId: number, date: string) => {
     } else if (availability === false) {
         return 'text-red-600 font-semibold';
     }
-    return ''; 
+    return '';
 };
 
 const submit = () => {
-    localValidationErrors.value = {}; 
+    localValidationErrors.value = {};
 
     form.transform((data) => {
         const transformedAssignments: {
@@ -198,7 +212,7 @@ const submit = () => {
         for (const compositeKey in data.assignments) {
             const userIdAsString = data.assignments[compositeKey];
             const parts = compositeKey.split('_');
-            
+
             if (parts.length === 3) {
                 const shiftTemplateId = parseInt(parts[0]);
                 const assignmentDate = parts[1];
@@ -209,7 +223,7 @@ const submit = () => {
                         shift_template_id: shiftTemplateId,
                         assignment_date: assignmentDate,
                         position: position,
-                        user_id: parseInt(userIdAsString), 
+                        user_id: parseInt(userIdAsString),
                     });
                 }
             }
@@ -231,11 +245,7 @@ const submit = () => {
             for (const key in errors) {
                 if (key.startsWith('assignments.')) {
                     const parts = key.split('.');
-                    if (parts.length >= 3) {
-                        toast.error('Wystąpiły błędy walidacji w przypisaniach. Sprawdź wszystkie pola.');
-                    } else {
-                        toast.error((errors as Record<string, string>)[key]);
-                    }
+                    toast.error('Wystąpiły błędy walidacji w przypisaniach. Sprawdź wszystkie pola.');
                 } else {
                     toast.error((errors as Record<string, string>)[key]);
                 }
@@ -261,19 +271,6 @@ const submit = () => {
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit">
-                        <div class="grid grid-cols-1 gap-4 mb-6">
-                            <div>
-                                <Label for="name">Nazwa Grafiku</Label>
-                                <Input id="name" v-model="form.name" type="text" disabled />
-                                <div v-if="form.errors.name" class="text-red-500 text-xs mt-1">{{ form.errors.name }}</div>
-                            </div>
-                            <div>
-                                <Label for="period_start_date">Miesiąc (od)</Label>
-                                <Input id="period_start_date" v-model="form.period_start_date" type="date" disabled />
-                                <div v-if="form.errors.period_start_date" class="text-red-500 text-xs mt-1">{{ form.errors.period_start_date }}</div>
-                            </div>
-                        </div>
-
                         <div class="overflow-x-auto pb-4">
                             <div v-for="(dayChunk, chunkIndex) in monthDayChunks" :key="chunkIndex" class="mb-8">
                                 <h4 class="text-md font-semibold mb-2">Tydzień {{ chunkIndex + 1 }}</h4>
@@ -306,9 +303,24 @@ const submit = () => {
                                                     }"
                                                 >
                                                     <div v-for="pos in shiftTemplate.required_staff_count" :key="pos" class="mb-2 last:mb-0">
+                                                        <div
+                                                            v-if="!isEditing(shiftTemplate.id, day.date, pos)"
+                                                            @click="activateEdit(shiftTemplate.id, day.date, pos)"
+                                                            class="p-2 border rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                            :class="cn(
+                                                                getAssignmentError(shiftTemplate.id, day.date, pos) ? 'border-red-500' : 'border-gray-200 dark:border-gray-700',
+                                                                getAvailabilityClass(parseInt(getAssignedUser(shiftTemplate.id, day.date, pos) || '-1'), day.date)
+                                                            )"
+                                                        >
+                                                            {{ users.find(u => String(u.id) === getAssignedUser(shiftTemplate.id, day.date, pos))?.name || 'Brak' }}
+                                                        </div>
+
                                                         <Select
+                                                            v-else
                                                             :model-value="getAssignedUser(shiftTemplate.id, day.date, pos)"
                                                             @update:model-value="val => setAssignment(shiftTemplate.id, day.date, pos, val)"
+                                                            @update:open="open => !open && deactivateEdit()"
+                                                            :default-open="true"
                                                         >
                                                             <SelectTrigger :class="cn(
                                                                 'w-full',

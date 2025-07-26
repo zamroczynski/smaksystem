@@ -71,15 +71,24 @@ class ScheduleController extends Controller
             return redirect()->route('schedules.index')->with('error', 'Opublikowany lub zarchiwizowany grafik nie może być edytowany.');
         }
 
-        $editData = $this->scheduleService->getScheduleDetailsForEdit($schedule);
+        $scheduleData = $this->scheduleService->getScheduleDetailsForEdit($schedule);
 
-        return Inertia::render('Schedules/Edit', array_merge($editData, [
-            'breadcrumbs' => [
-                ['label' => 'Grafiki pracy', 'url' => route('schedules.index')],
-                ['label' => 'Edycja: ' . $schedule->name, 'url' => route('schedules.edit', $schedule)],
-            ],
+        $breadcrumbs = [
+            ['title' => 'Panel nawigacyjny', 'href' => route('dashboard')],
+            ['title' => 'Grafiki Pracy', 'href' => route('schedules.index')],
+            ['title' => 'Edycja: ' . $schedule->name, 'href' => route('schedules.edit', $schedule->id)],
+        ];
+
+        return Inertia::render('Schedules/Edit', [
+            'schedule' => $scheduleData['schedule'],
+            'assignedShiftTemplates' => $scheduleData['assignedShiftTemplates'],
+            'users' => $scheduleData['users'],
+            'initialAssignments' => $scheduleData['initialAssignments'], // Zmieniono z 'assignments' na 'initialAssignments'
+            'monthDays' => $scheduleData['monthDays'],
+            'preferences' => $scheduleData['preferences'], // Dodano preferencje
+            'breadcrumbs' => $breadcrumbs, // Tutaj przekazujemy breadcrumbs
             'flash' => session('flash'),
-        ]));
+        ]);
     }
 
     /**
