@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 // import { BookOpen, Folder } from 'lucide-vue-next';
-import { LayoutGrid, User, Award, FileSliders, AlarmClockPlus, CalendarClock } from 'lucide-vue-next';
+import { LayoutGrid, User, Award, FileSliders, AlarmClockPlus, CalendarClock, CalendarDays } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -52,6 +52,12 @@ const allNavItems: NavItemWithPermission[] = [
         href: '/schedules',
         icon: CalendarClock,
         permission: 'Edycja Grafików Pracy',
+    },
+    {
+        title: 'Grafik pracy',
+        href: '/employee-schedules',
+        icon: CalendarDays,
+        permission: 'Grafik Pracy',
     },
 ];
 

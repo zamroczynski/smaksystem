@@ -7,6 +7,7 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\ShiftTemplateController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\WorkerScheduleController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -48,6 +49,16 @@ Route::middleware(['auth', 'can:Edycja Grafików Pracy'])->group(function () {
     Route::post('/schedules/{schedule}/restore', [ScheduleController::class, 'restore'])->name('schedules.restore');
     Route::post('/schedules/{schedule}/publish', [ScheduleController::class, 'publish'])->name('schedules.publish');
     Route::post('/schedules/{schedule}/unpublish', [ScheduleController::class, 'unpublish'])->name('schedules.unpublish');
+});
+
+Route::middleware(['auth', 'can:Grafik Pracy'])->group(function () {
+    Route::prefix('employee-schedules')->name('employee.schedules.')->group(function () {
+        Route::get('/', [WorkerScheduleController::class, 'index'])->name('index');
+        Route::get('/{schedule}', [WorkerScheduleController::class, 'show'])->name('show');
+        Route::get('/{schedule}/pdf/full', [WorkerScheduleController::class, 'downloadFullPdf'])->name('pdf.full');
+        Route::get('/{schedule}/pdf/my', [WorkerScheduleController::class, 'downloadMyPdf'])->name('pdf.my');
+    });
+    
 });
 
 require __DIR__ . '/settings.php';

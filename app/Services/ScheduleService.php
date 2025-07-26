@@ -8,6 +8,7 @@ use App\Models\ScheduleAssignment;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class ScheduleService
 {
@@ -132,5 +133,151 @@ class ScheduleService
         if (!empty($assignmentsToInsert)) {
             ScheduleAssignment::insert($assignmentsToInsert);
         }
+    }
+
+    /**
+     * Get published and archived schedules for worker view.
+     */
+    public function getPublishedAndArchivedSchedules(int $perPage = 10): LengthAwarePaginator
+    {
+        return Schedule::query()
+            ->whereIn('status', ['published', 'archived'])
+            ->orderByDesc('period_start_date')
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->through(function ($schedule) {
+                return [
+                    'id' => $schedule->id,
+                    'name' => $schedule->name,
+                    'period_start_date' => Carbon::parse($schedule->period_start_date)->format('Y-m-d'),
+                    'status' => $schedule->status,
+                ];
+            });
+    }
+
+    /**
+     * Get detailed schedule data for worker's view.
+     *
+     * @param Schedule $schedule
+     * @param int|null $userId Optional: User ID to filter assignments.
+     * @return array
+     */
+    public function getScheduleDetailsForWorkerShow(Schedule $schedule, ?int $userId = null): array
+    {
+        $schedule->load([
+            'shiftTemplates' => function ($query) {
+                $query->select('shift_templates.id', 'name', 'time_from', 'time_to', 'required_staff_count');
+            },
+            'assignments' => function ($query) use ($userId) {
+                $query->select('schedule_id', 'shift_template_id', 'user_id', 'assignment_date', 'position')
+                    ->with('user:id,name'); 
+                if ($userId) {
+                    $query->where('user_id', $userId); 
+                }
+            },
+        ]);
+
+        $users = User::select('id', 'name')->get();
+
+        $startDate = Carbon::parse($schedule->period_start_date);
+        $endDate = $startDate->copy()->endOfMonth();
+        $monthDays = [];
+        Carbon::setLocale('pl');
+        
+
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            $monthDays[] = [
+                'date' => $date->format('Y-m-d'),
+                'day_number' => $date->day,
+                'day_name_short' => $date->dayName,
+                'is_sunday' => $date->isSunday(),
+                'is_saturday' => $date->isSaturday(),
+                'is_holiday' => false,
+            ];
+        }
+
+        $assignments = $schedule->assignments->groupBy(function ($assignment) {
+            return "{$assignment->shift_template_id}_{$assignment->assignment_date->format('Y-m-d')}_{$assignment->position}";
+        })->map(function ($groupedAssignments) {
+            return $groupedAssignments->map(function ($assignment) {
+                return [
+                    'user_id' => $assignment->user_id,
+                    'user_name' => $assignment->user->name,
+                ];
+            });
+        })->toArray();
+
+
+        return [
+            'schedule' => [
+                'id' => $schedule->id,
+                'name' => $schedule->name,
+                'period_start_date' => $schedule->period_start_date->format('Y-m-d'),
+                'status' => $schedule->status,
+            ],
+            'shiftTemplates' => $schedule->shiftTemplates,
+            'users' => $users, 
+            'assignments' => $assignments, 
+            'monthDays' => $monthDays,
+            'view_mode' => $userId ? 'my' : 'full', 
+        ];
+    }
+
+    /**
+     * Get schedule data for PDF generation.
+     * This method will be similar to getScheduleDetailsForWorkerShow but optimized for PDF.
+     * We'll eager load all necessary data at once.
+     */
+    public function getSchedulePdfData(Schedule $schedule, string $viewType, ?int $userId): array
+    {
+        $schedule->load([
+            'shiftTemplates' => function ($query) {
+                $query->select('shift_templates.id', 'name', 'time_from', 'time_to', 'required_staff_count');
+            },
+            'assignments' => function ($query) use ($userId) {
+                $query->select('schedule_id', 'shift_template_id', 'user_id', 'assignment_date', 'position')
+                      ->with('user:id,name');
+                if ($userId) {
+                    $query->where('user_id', $userId);
+                }
+            },
+        ]);
+
+        $users = User::select('id', 'name')->get();
+
+        $startDate = Carbon::parse($schedule->period_start_date);
+        $endDate = $startDate->copy()->endOfMonth();
+        $monthDays = [];
+        Carbon::setLocale('pl');
+
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            $monthDays[] = [
+                'date' => $date->format('Y-m-d'),
+                'day_number' => $date->day,
+                'day_name_short' => $date->dayName,
+                'is_sunday' => $date->isSunday(),
+                'is_saturday' => $date->isSaturday(),
+                'is_holiday' => false,
+            ];
+        }
+
+        $transformedAssignments = [];
+        foreach ($schedule->assignments as $assignment) {
+            $key = $assignment->shift_template_id . '_' . $assignment->assignment_date->format('Y-m-d') . '_' . $assignment->position;
+            $transformedAssignments[$key][] = [
+                'user_id' => $assignment->user->id,
+                'user_name' => $assignment->user->name,
+            ];
+        }
+
+        return [
+            'schedule' => $schedule->toArray(),
+            'shiftTemplates' => $schedule->shiftTemplates->toArray(),
+            'users' => $users->toArray(),
+            'assignments' => $transformedAssignments,
+            'monthDays' => $monthDays,
+            'view_type' => $viewType,
+            'auth_user_id' => $userId,
+        ];
     }
 }

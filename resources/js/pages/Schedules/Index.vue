@@ -75,12 +75,12 @@ watch(showArchived, (newVal) => {
     });
 });
 
-const isAlertDialogOpen = ref(false);
+const isArchiveAlertDialogOpen = ref(false);
 const scheduleToArchiveId = ref<number | null>(null);
 
 const confirmArchive = (id: number) => {
     scheduleToArchiveId.value = id;
-    isAlertDialogOpen.value = true;
+    isArchiveAlertDialogOpen.value = true;
 };
 
 const archiveScheduleConfirmed = () => {
@@ -88,7 +88,7 @@ const archiveScheduleConfirmed = () => {
         useForm({}).delete(route('schedules.destroy', scheduleToArchiveId.value), {
             onSuccess: () => {
                 toast.success('Grafik pracy został pomyślnie zarchiwizowany.');
-                isAlertDialogOpen.value = false;
+                isArchiveAlertDialogOpen.value = false;
                 scheduleToArchiveId.value = null;
                 router.get(route('schedules.index', { show_archived: showArchived.value }), {}, {
                     preserveState: true,
@@ -98,10 +98,26 @@ const archiveScheduleConfirmed = () => {
             },
             onError: () => {
                 toast.error('Wystąpił błąd podczas archiwizacji grafiku pracy.');
-                isAlertDialogOpen.value = false;
+                isArchiveAlertDialogOpen.value = false;
                 scheduleToArchiveId.value = null;
             },
         });
+    }
+};
+
+const isEditAlertDialogOpen = ref(false);
+const scheduleToEditId = ref<number | null>(null);
+
+const confirmEdit = (id: number) => {
+    scheduleToEditId.value = id;
+    isEditAlertDialogOpen.value = true;
+};
+
+const continueEdit = () => {
+    if (scheduleToEditId.value !== null) {
+        router.visit(route('schedules.edit', scheduleToEditId.value));
+        isEditAlertDialogOpen.value = false;
+        scheduleToEditId.value = null;
     }
 };
 
@@ -167,6 +183,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 </script>
 
 <template>
+
     <Head title="Grafiki Pracy" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -205,9 +222,12 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <TableCell>{{ schedule.name }}</TableCell>
                                 <TableCell>{{ schedule.period_start_date }}</TableCell>
                                 <TableCell>
-                                    <span v-if="schedule.status === 'published'" class="text-green-600 font-semibold">Opublikowany</span>
-                                    <span v-else-if="schedule.status === 'draft'" class="text-blue-500 font-semibold">Roboczy</span>
-                                    <span v-else-if="schedule.status === 'archived'" class="text-red-500 font-semibold">Zarchiwizowany</span>
+                                    <span v-if="schedule.status === 'published'"
+                                        class="text-green-600 font-semibold">Opublikowany</span>
+                                    <span v-else-if="schedule.status === 'draft'"
+                                        class="text-blue-500 font-semibold">Roboczy</span>
+                                    <span v-else-if="schedule.status === 'archived'"
+                                        class="text-red-500 font-semibold">Zarchiwizowany</span>
                                     <span v-else class="text-gray-500">Nieznany</span>
                                 </TableCell>
                                 <TableCell>{{ schedule.created_at }}</TableCell>
@@ -219,9 +239,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         </Button>
                                     </template>
                                     <template v-else-if="schedule.status === 'draft'">
-                                        <Button as-child variant="outline" size="sm">
-                                            <Link :href="route('schedules.edit', schedule.id)">Edytuj</Link>
-                                        </Button>
+                                        <Button variant="outline" size="sm"
+                                            @click="confirmEdit(schedule.id)">Edytuj</Button>
                                         <Button variant="outline" size="sm" @click="publishSchedule(schedule.id)">
                                             Opublikuj
                                         </Button>
@@ -256,20 +275,39 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
         </div>
 
-        <AlertDialog :open="isAlertDialogOpen" @update:open="isAlertDialogOpen = $event">
+        <AlertDialog :open="isArchiveAlertDialogOpen" @update:open="isArchiveAlertDialogOpen = $event">
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz zarchiwizować ten grafik pracy?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Ta akcja spowoduje zarchiwizowanie grafiku pracy. Będzie on niewidoczny w aktywnych listach,
-                        ale będzie można go przywrócić. Pamiętaj, że zarchiwizowany grafik nie może być edytowany ani przypisywany.
+                        ale będzie można go przywrócić. Pamiętaj, że zarchiwizowany grafik nie może być edytowany ani
+                        przypisywany.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel @click="isAlertDialogOpen = false">Anuluj</AlertDialogCancel>
-                    <AlertDialogAction @click="archiveScheduleConfirmed"
-                        class="bg-red-600 text-white hover:bg-red-700">
+                    <AlertDialogCancel @click="isArchiveAlertDialogOpen = false">Anuluj</AlertDialogCancel>
+                    <AlertDialogAction @click="archiveScheduleConfirmed" class="bg-red-600 text-white hover:bg-red-700">
                         Archiwizuj Grafik
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog :open="isEditAlertDialogOpen" @update:open="isEditAlertDialogOpen = $event">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Uruchomienie narzędzia do edycji grafików</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Narzędzie do edycji grafików pracy jest bardzo rozbudowane i jego załadowanie może zająć dłuższą
+                        chwilę.
+                        Prosimy o cierpliwość.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel @click="isEditAlertDialogOpen = false">Anuluj</AlertDialogCancel>
+                    <AlertDialogAction @click="continueEdit">
+                        Kontynuuj
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
