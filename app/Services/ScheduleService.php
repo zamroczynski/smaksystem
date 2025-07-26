@@ -136,43 +136,28 @@ class ScheduleService
     public function updateScheduleAssignments(Schedule $schedule, array $newAssignments): void
     {
         DB::transaction(function () use ($schedule, $newAssignments) {
-            // Usuń wszystkie istniejące przypisania dla tego harmonogramu
             ScheduleAssignment::where('schedule_id', $schedule->id)->delete();
 
             $assignmentsToInsert = [];
 
-            foreach ($newAssignments as $compositeKey => $userId) {
-                // Rygorystyczne sprawdzenie formatu klucza za pomocą wyrażenia regularnego.
-                if (!preg_match('/^\d+_\d{4}-\d{2}-\d{2}_\d+$/', $compositeKey)) {
-                    Log::warning('Skipping non-assignment composite key in ScheduleService: ' . $compositeKey);
-                    continue; // Pomiń klucze, które nie pasują do oczekiwanego formatu
-                }
-
-                $parts = explode('_', $compositeKey);
-
-                // Dodatkowe sprawdzenie struktury po explode
-                if (count($parts) !== 3 || !isset($parts[0]) || !isset($parts[1]) || !isset($parts[2])) {
-                    Log::warning('Invalid structure after explode for composite key: ' . $compositeKey);
-                    continue;
-                }
-
-                $shiftTemplateId = (int) $parts[0];
-                $date = $parts[1]; // Data jest już w formacie YYYY-MM-DD
-                $position = (int) $parts[2];
-
-                // userId przychodzi jako number lub null (z frontendu)
-                $actualUserId = $userId !== null ? (int) $userId : null;
-
-                if ($actualUserId !== null) {
+            foreach ($newAssignments as $assignmentData) {
+                if (
+                    isset($assignmentData['shift_template_id']) &&
+                    isset($assignmentData['assignment_date']) &&
+                    isset($assignmentData['position']) &&
+                    isset($assignmentData['user_id'])
+                ) {
                     $assignmentsToInsert[] = [
                         'schedule_id' => $schedule->id,
-                        'shift_template_id' => $shiftTemplateId,
-                        'user_id' => $actualUserId,
-                        'assignment_date' => $date,
-                        'position' => $position,
+                        'shift_template_id' => (int) $assignmentData['shift_template_id'],
+                        'user_id' => $assignmentData['user_id'] !== null ? (int) $assignmentData['user_id'] : null,
+                        'assignment_date' => $assignmentData['assignment_date'],
+                        'position' => (int) $assignmentData['position'],
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now(),
                     ];
+                } else {
+                    Log::warning('Skipping invalid assignment data structure: ' . json_encode($assignmentData));
                 }
             }
 

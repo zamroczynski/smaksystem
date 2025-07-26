@@ -93,8 +93,13 @@ class ScheduleController extends Controller
 
         $validatedData = $request->validated();
 
-        $assignments = $request->input('assignments', []);
-        $this->scheduleService->updateScheduleAssignments($schedule, $assignments);
+        $schedule->update([
+            'name' => $validatedData['name'],
+            'period_start_date' => $validatedData['period_start_date'],
+            'status' => $validatedData['status'],
+        ]);
+
+        $this->scheduleService->updateScheduleAssignments($schedule, $validatedData['assignments'] ?? []);
 
         return redirect()->route('schedules.edit', $schedule)->with('flash', ['success' => 'Grafik pracy zaktualizowany pomyślnie.']);
     }

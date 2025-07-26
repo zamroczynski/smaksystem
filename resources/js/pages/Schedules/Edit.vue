@@ -132,68 +132,114 @@ const setAssignment = (shiftTemplateId: number, date: string, position: number, 
     localValidationErrors.value[key] = null;
 };
 
-// Funkcja do uzyskania błędu walidacji dla danego pola
 const getAssignmentError = (shiftTemplateId: number, date: string, position: number): string | null => {
-    const key = `assignments.${shiftTemplateId}_${date}_${position}`;
-    // Bezpieczny dostęp do błędów
-    return form.errors[key as keyof typeof form.errors] || localValidationErrors.value[key];
+    // Klucz do porównania w localValidationErrors
+    const compositeKey = `${shiftTemplateId}_${date}_${position}`;
+    if (localValidationErrors.value[compositeKey]) {
+        return localValidationErrors.value[compositeKey];
+    }
+
+    for (const errorKey in form.errors) {
+        if (errorKey.startsWith('assignments.') && errorKey.endsWith('.user_id')) {
+            const assignmentsAsArray = Object.entries(form.assignments)
+                .filter(([key, value]) => value !== null && value !== "-1")
+                .map(([key, value]) => {
+                    const parts = key.split('_');
+                    return {
+                        shift_template_id: parseInt(parts[0]),
+                        assignment_date: parts[1],
+                        position: parseInt(parts[2]),
+                        user_id: parseInt(value as string),
+                        compositeKey: key 
+                    };
+                });
+            
+            const errorIndex = parseInt(errorKey.split('.')[1]);
+
+            if (!isNaN(errorIndex) && assignmentsAsArray[errorIndex] && assignmentsAsArray[errorIndex].compositeKey === compositeKey) {
+                 return form.errors[errorKey as keyof typeof form.errors];
+            }
+        }
+    }
+    return null;
 };
 
-// NOWA FUNKCJA: Pobieranie dostępności pracownika na dany dzień
 const getUserAvailability = (userId: number, date: string): boolean | null => {
-    // Sprawdź, czy istnieją preferencje dla tego użytkownika
     if (props.preferences[userId]) {
-        // Sprawdź, czy istnieje preferencja dla konkretnego dnia
         const availability = props.preferences[userId][date];
-        // Upewnij się, że wartość jest faktycznie boolean lub null
         if (typeof availability === 'boolean') {
             return availability;
         }
     }
-    return null; // Brak preferencji dla tego użytkownika/dnia
+    return null;
 };
 
-// Funkcja pomocnicza do klasy SelectItem
 const getAvailabilityClass = (userId: number, date: string) => {
     const availability = getUserAvailability(userId, date);
     if (availability === true) {
-        return 'text-green-600 font-semibold'; // Zielony dla dostępnych
+        return 'text-green-600 font-semibold';
     } else if (availability === false) {
-        return 'text-red-600 font-semibold'; // Czerwony dla niedostępnych
+        return 'text-red-600 font-semibold';
     }
-    return ''; // Brak koloru dla braku preferencji
+    return ''; 
 };
 
 const submit = () => {
-    // Używamy form.transform do przekształcenia danych przed wysłaniem
+    localValidationErrors.value = {}; 
+
     form.transform((data) => {
-        const transformedAssignments: Record<string, number | null> = {};
-        for (const key in data.assignments) {
-            const userIdAsString = data.assignments[key];
-            // Konwersja na number lub null, "-1" oznacza null
-            transformedAssignments[key] = userIdAsString !== null && userIdAsString !== "-1" ? parseInt(userIdAsString) : null;
+        const transformedAssignments: {
+            shift_template_id: number;
+            assignment_date: string;
+            position: number;
+            user_id: number | null;
+        }[] = [];
+
+        for (const compositeKey in data.assignments) {
+            const userIdAsString = data.assignments[compositeKey];
+            const parts = compositeKey.split('_');
+            
+            if (parts.length === 3) {
+                const shiftTemplateId = parseInt(parts[0]);
+                const assignmentDate = parts[1];
+                const position = parseInt(parts[2]);
+
+                if (userIdAsString !== null && userIdAsString !== "-1") {
+                    transformedAssignments.push({
+                        shift_template_id: shiftTemplateId,
+                        assignment_date: assignmentDate,
+                        position: position,
+                        user_id: parseInt(userIdAsString), 
+                    });
+                }
+            }
         }
-        // Zwracamy cały obiekt danych formularza z przekształconymi przypisaniami
+
         return {
-            ...data,
+            name: data.name,
+            period_start_date: data.period_start_date,
+            status: data.status,
             assignments: transformedAssignments,
         };
     }).put(route('schedules.update', props.schedule.id), {
         onSuccess: () => {
             toast.success('Grafik pracy został pomyślnie zaktualizowany.');
+            localValidationErrors.value = {};
         },
         onError: (errors) => {
             console.error('Błędy walidacji:', errors);
-            // Mapowanie błędów z backendu do localValidationErrors
             for (const key in errors) {
                 if (key.startsWith('assignments.')) {
-                    // Tutaj również musimy być bezpieczni z dostępem
-                    localValidationErrors.value[key.substring(12)] = (errors as Record<string, string>)[key];
+                    const parts = key.split('.');
+                    if (parts.length >= 3) {
+                        toast.error('Wystąpiły błędy walidacji w przypisaniach. Sprawdź wszystkie pola.');
+                    } else {
+                        toast.error((errors as Record<string, string>)[key]);
+                    }
                 } else {
                     toast.error((errors as Record<string, string>)[key]);
                 }
             }
-            toast.error('Wystąpiły błędy podczas aktualizacji grafiku.');
         },
     });
 };
