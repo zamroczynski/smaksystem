@@ -45,7 +45,7 @@ Route::middleware(['auth', 'can:Harmonogram Zmian'])->group(function () {
 });
 
 Route::middleware(['auth', 'can:Edycja Grafików Pracy'])->group(function () {
-    Route::resource('schedules', ScheduleController::class);
+    Route::resource('schedules', ScheduleController::class)->except(['show']);
     Route::post('/schedules/{schedule}/restore', [ScheduleController::class, 'restore'])->name('schedules.restore');
     Route::post('/schedules/{schedule}/publish', [ScheduleController::class, 'publish'])->name('schedules.publish');
     Route::post('/schedules/{schedule}/unpublish', [ScheduleController::class, 'unpublish'])->name('schedules.unpublish');

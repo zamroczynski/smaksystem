@@ -23,8 +23,8 @@ class UpdateScheduleRequest extends FormRequest
      */
     public function rules(): array
     {
-        $scheduleId = $this->route('schedule') ? $this->route('schedule')->id : null;
-        return [
+        $schedule = $this->route('schedule');
+        $rules = [
             'name' => [
                 'required',
                 'string',
@@ -40,6 +40,13 @@ class UpdateScheduleRequest extends FormRequest
                 Rule::in(['draft', 'published', 'archived']),
             ],
         ];
+
+        if ($schedule) {
+            $rules['name'][] = Rule::in([$schedule->name]);
+            $rules['period_start_date'][] = Rule::in([$schedule->period_start_date->format('Y-m-d')]);
+        }
+
+        return $rules;
     }
 
     /**
@@ -53,8 +60,11 @@ class UpdateScheduleRequest extends FormRequest
             'name.required' => 'Nazwa grafiku jest wymagana.',
             'name.string' => 'Nazwa grafiku musi być tekstem.',
             'name.max' => 'Nazwa grafiku nie może przekraczać 255 znaków.',
+
             'period_start_date.required' => 'Data rozpoczęcia okresu grafiku jest wymagana.',
             'period_start_date.date_format' => 'Data rozpoczęcia musi być w formacie RRRR-MM-DD.',
+            'period_start_date.in' => 'Nie można zmienić daty rozpoczęcia okresu grafiku po jego utworzeniu.',
+
             'status.required' => 'Status grafiku jest wymagany.',
             'status.string' => 'Status grafiku musi być tekstem.',
             'status.in' => 'Nieprawidłowy status grafiku.',

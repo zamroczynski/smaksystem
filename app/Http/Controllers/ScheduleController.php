@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\UpdateScheduleRequest;
-use Carbon\Carbon;
 use App\Services\ScheduleService;
 
 class ScheduleController extends Controller
@@ -29,7 +28,6 @@ class ScheduleController extends Controller
     public function index(Request $request)
     {
         $showArchived = $request->boolean('show_archived');
-
         $schedules = $this->scheduleService->getSchedulesForIndex($showArchived);
 
         return Inertia::render('Schedules/Index', [
@@ -65,24 +63,6 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Schedule $schedule)
-    {
-        // Ta metoda może być używana do wyświetlenia szczegółów grafiku (widok pracownika)
-        // Na razie zostawimy ją prostą, rozszerzymy ją, gdy będziemy implementować widok pracownika.
-        return Inertia::render('Schedules/Show', [
-            'schedule' => [
-                'id' => $schedule->id,
-                'name' => $schedule->name,
-                'period_start_date' => Carbon::parse($schedule->period_start_date)->format('Y-m-d'),
-                'status' => $schedule->status,
-                // Możesz tu również załadować przypisane zmiany i pracowników
-            ]
-        ]);
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Schedule $schedule)
@@ -91,9 +71,15 @@ class ScheduleController extends Controller
             return redirect()->route('schedules.index')->with('error', 'Opublikowany lub zarchiwizowany grafik nie może być edytowany.');
         }
 
-        $editData = $this->scheduleService->getScheduleEditData($schedule);
+        $editData = $this->scheduleService->getScheduleDetailsForEdit($schedule);
 
-        return Inertia::render('Schedules/Edit', $editData);
+        return Inertia::render('Schedules/Edit', array_merge($editData, [
+            'breadcrumbs' => [
+                ['label' => 'Grafiki pracy', 'url' => route('schedules.index')],
+                ['label' => 'Edycja: ' . $schedule->name, 'url' => route('schedules.edit', $schedule)],
+            ],
+            'flash' => session('flash'),
+        ]));
     }
 
     /**
@@ -106,11 +92,11 @@ class ScheduleController extends Controller
         }
 
         $validatedData = $request->validated();
-        $newAssignments = $request->input('assignments', []);
 
-        $this->scheduleService->updateScheduleAndAssignments($schedule, $validatedData, $newAssignments);
+        $assignments = $request->input('assignments', []);
+        $this->scheduleService->updateScheduleAssignments($schedule, $assignments);
 
-        return redirect()->route('schedules.index')->with('success', 'Grafik pracy został pomyślnie zaktualizowany.');
+        return redirect()->route('schedules.edit', $schedule)->with('flash', ['success' => 'Grafik pracy zaktualizowany pomyślnie.']);
     }
 
     /**

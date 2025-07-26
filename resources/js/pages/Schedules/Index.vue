@@ -249,9 +249,6 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         </Button>
                                     </template>
                                     <template v-else-if="schedule.status === 'published'">
-                                        <Button as-child variant="outline" size="sm">
-                                            <Link :href="route('schedules.show', schedule.id)">Pokaż</Link>
-                                        </Button>
                                         <Button variant="outline" size="sm" @click="unpublishSchedule(schedule.id)">
                                             Cofnij publikację
                                         </Button>

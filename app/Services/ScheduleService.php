@@ -6,9 +6,12 @@ use App\Models\Schedule;
 use App\Models\ShiftTemplate;
 use App\Models\ScheduleAssignment;
 use App\Models\User;
+use App\Models\Preference;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleService
 {
@@ -49,45 +52,63 @@ class ScheduleService
     /**
      * Prepare data for the schedule edit view.
      */
-    public function getScheduleEditData(Schedule $schedule): array
+    public function getScheduleDetailsForEdit(Schedule $schedule): array
     {
-        $assignedShiftTemplates = $schedule->shiftTemplates()
-            ->select('shift_templates.id', 'shift_templates.name', 'shift_templates.required_staff_count')
-            ->get();
+        $schedule->load([
+            'shiftTemplates' => function ($query) {
+                $query->select('shift_templates.id', 'name', 'time_from', 'time_to', 'duration_hours', 'required_staff_count');
+            },
+            'assignments' => function ($query) {
+                $query->select('schedule_id', 'shift_template_id', 'user_id', 'assignment_date', 'position');
+            },
+        ]);
 
-        $users = User::select('id', 'name')
-                      ->orderBy('name')
-                      ->get();
-
-        $assignments = $schedule->assignments()
-            ->select('shift_template_id', 'user_id', 'assignment_date', 'position')
-            ->get()
-            ->mapWithKeys(function ($assignment) {
-                $key = $assignment->shift_template_id . '_' . $assignment->assignment_date->format('Y-m-d') . '_' . $assignment->position;
-                return [$key => $assignment->user_id];
-            })->toArray();
+        $users = User::select('id', 'name')->orderBy('name')->get();
 
         $startDate = Carbon::parse($schedule->period_start_date);
         $endDate = $startDate->copy()->endOfMonth();
-        $daysInMonth = $endDate->day;
 
         $monthDays = [];
-        $holidays = [
-            '2025-01-01', '2025-01-06', '2025-04-20', '2025-04-21',
-            '2025-05-01', '2025-05-03', '2025-06-08', '2025-06-19',
-            '2025-08-15', '2025-11-01', '2025-11-11', '2025-12-25', '2025-12-26',
-        ];
-
-        for ($i = 0; $i < $daysInMonth; $i++) {
-            $currentDay = $startDate->copy()->addDays($i);
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
             $monthDays[] = [
-                'date' => $currentDay->format('Y-m-d'),
-                'day_number' => $currentDay->day,
-                'is_sunday' => $currentDay->isSunday(),
-                'is_saturday' => $currentDay->isSaturday(),
-                'is_holiday' => in_array($currentDay->format('Y-m-d'), $holidays), // Bezpośrednie sprawdzenie
+                'date' => $date->format('Y-m-d'),
+                'day_number' => $date->day,
+                'is_sunday' => $date->isSunday(),
+                'is_saturday' => $date->isSaturday(),
+                'is_holiday' => false, // TODO: Implement holiday check if needed
             ];
         }
+
+        $assignments = [];
+        foreach ($schedule->assignments as $assignment) {
+            $key = $assignment->shift_template_id . '_' . $assignment->assignment_date->format('Y-m-d') . '_' . $assignment->position;
+            $assignments[$key] = $assignment->user_id;
+        }
+
+        $preferences = Preference::query()
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('date_from', [$startDate, $endDate])
+                      ->orWhereBetween('date_to', [$startDate, $endDate])
+                      ->orWhere(function ($query) use ($startDate, $endDate) {
+                          $query->where('date_from', '<', $startDate)
+                                ->where('date_to', '>', $endDate);
+                      });
+            })
+            ->select('user_id', 'date_from', 'date_to', 'availability')
+            ->get()
+            ->groupBy('user_id');
+
+        $formattedPreferences = [];
+        foreach ($preferences as $userId => $userPreferences) {
+            foreach ($userPreferences as $preference) {
+                $currentDate = Carbon::parse($preference->date_from);
+                while ($currentDate->lte(Carbon::parse($preference->date_to))) {
+                    $formattedPreferences[$userId][$currentDate->format('Y-m-d')] = $preference->availability;
+                    $currentDate->addDay();
+                }
+            }
+        }
+        // ------------------------------------------------
 
         return [
             'schedule' => [
@@ -96,10 +117,11 @@ class ScheduleService
                 'period_start_date' => $schedule->period_start_date->format('Y-m-d'),
                 'status' => $schedule->status,
             ],
-            'assignedShiftTemplates' => $assignedShiftTemplates,
-            'users' => $users,
+            'assignedShiftTemplates' => $schedule->shiftTemplates->toArray(),
+            'users' => $users->toArray(),
             'initialAssignments' => $assignments,
             'monthDays' => $monthDays,
+            'preferences' => $formattedPreferences,
         ];
     }
 
@@ -111,28 +133,53 @@ class ScheduleService
      * @param array $newAssignments New assignments data
      * @return void
      */
-    public function updateScheduleAndAssignments(Schedule $schedule, array $validatedData, array $newAssignments): void
+    public function updateScheduleAssignments(Schedule $schedule, array $newAssignments): void
     {
-        $schedule->update($validatedData);
+        DB::transaction(function () use ($schedule, $newAssignments) {
+            // Usuń wszystkie istniejące przypisania dla tego harmonogramu
+            ScheduleAssignment::where('schedule_id', $schedule->id)->delete();
 
-        $schedule->assignments()->delete();
+            $assignmentsToInsert = [];
 
-        $assignmentsToInsert = [];
-        foreach ($newAssignments as $assignmentData) {
-            $assignmentsToInsert[] = [
-                'schedule_id' => $schedule->id,
-                'shift_template_id' => $assignmentData['shift_template_id'],
-                'user_id' => $assignmentData['user_id'],
-                'assignment_date' => $assignmentData['assignment_date'],
-                'position' => $assignmentData['position'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
+            foreach ($newAssignments as $compositeKey => $userId) {
+                // Rygorystyczne sprawdzenie formatu klucza za pomocą wyrażenia regularnego.
+                if (!preg_match('/^\d+_\d{4}-\d{2}-\d{2}_\d+$/', $compositeKey)) {
+                    Log::warning('Skipping non-assignment composite key in ScheduleService: ' . $compositeKey);
+                    continue; // Pomiń klucze, które nie pasują do oczekiwanego formatu
+                }
 
-        if (!empty($assignmentsToInsert)) {
-            ScheduleAssignment::insert($assignmentsToInsert);
-        }
+                $parts = explode('_', $compositeKey);
+
+                // Dodatkowe sprawdzenie struktury po explode
+                if (count($parts) !== 3 || !isset($parts[0]) || !isset($parts[1]) || !isset($parts[2])) {
+                    Log::warning('Invalid structure after explode for composite key: ' . $compositeKey);
+                    continue;
+                }
+
+                $shiftTemplateId = (int) $parts[0];
+                $date = $parts[1]; // Data jest już w formacie YYYY-MM-DD
+                $position = (int) $parts[2];
+
+                // userId przychodzi jako number lub null (z frontendu)
+                $actualUserId = $userId !== null ? (int) $userId : null;
+
+                if ($actualUserId !== null) {
+                    $assignmentsToInsert[] = [
+                        'schedule_id' => $schedule->id,
+                        'shift_template_id' => $shiftTemplateId,
+                        'user_id' => $actualUserId,
+                        'assignment_date' => $date,
+                        'position' => $position,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ];
+                }
+            }
+
+            if (!empty($assignmentsToInsert)) {
+                ScheduleAssignment::insert($assignmentsToInsert);
+            }
+        });
     }
 
     /**
