@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Services\ScheduleService;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\BreadcrumbsGenerator;
 
 class WorkerScheduleController extends Controller
 {
@@ -26,11 +27,15 @@ class WorkerScheduleController extends Controller
         $schedules = $this->scheduleService->getPublishedAndArchivedSchedules(
             $request->input('per_page', 10)
         );
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Grafiki Pracy', route('employee.schedules.index'))
+            ->get();
 
         return Inertia::render('Schedules/ViewSchedules', [
             'schedules' => $schedules,
             'flash' => session('flash'),
             'can_view_my_schedule' => Auth::check(),
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -49,14 +54,14 @@ class WorkerScheduleController extends Controller
             $schedule,
             $viewType === 'my' ? Auth::id() : null
         );
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Grafiki Pracy', route('employee.schedules.index'))
+            ->add($schedule->name, '#')
+            ->get();
 
         return Inertia::render('Schedules/ShowSchedule', [
             'scheduleData' => $scheduleData,
-            'breadcrumbs' => [
-                ['title' => 'Panel nawigacyjny', 'href' => '/dashboard'],
-                ['title' => 'Grafiki Pracy', 'href' => route('employee.schedules.index')],
-                ['title' => $schedule->name, 'href' => '#'],
-            ],
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 

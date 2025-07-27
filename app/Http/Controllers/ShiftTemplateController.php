@@ -7,6 +7,7 @@ use App\Models\ShiftTemplate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use App\Helpers\BreadcrumbsGenerator;
 
 class ShiftTemplateController extends Controller
 {
@@ -41,10 +42,15 @@ class ShiftTemplateController extends Controller
             ];
         });
 
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Harmonogramy Zmian', route('shift-templates.index'))
+            ->get();
+
         return Inertia::render('ShiftTemplates/Index', [
             'shiftTemplates' => $shiftTemplates,
             'show_deleted' => $showDeleted,
             'flash' => session('flash'),
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -53,7 +59,13 @@ class ShiftTemplateController extends Controller
      */
     public function create()
     {
-        return Inertia::render('ShiftTemplates/Create');
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Harmonogramy Zmian', route('shift-templates.index'))
+            ->add('Dodaj Harmonogram Zmian', route('shift-templates.create'))
+            ->get();
+        return Inertia::render('ShiftTemplates/Create', [
+            'breadcrumbs' => $breadcrumbs,
+        ]);
     }
 
     /**
@@ -72,6 +84,10 @@ class ShiftTemplateController extends Controller
      */
     public function edit(ShiftTemplate $shiftTemplate)
     {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Harmonogramy Zmian', route('shift-templates.index'))
+            ->add('Edytuj Harmonogram Zmian', route('shift-templates.edit', $shiftTemplate))
+            ->get();
         return Inertia::render('ShiftTemplates/Edit', [
             'shiftTemplate' => [
                 'id' => $shiftTemplate->id,
@@ -80,7 +96,8 @@ class ShiftTemplateController extends Controller
                 'time_to' => Carbon::parse($shiftTemplate->time_to)->format('H:i'),
                 'duration_hours' => number_format($shiftTemplate->duration_hours, 2),
                 'required_staff_count' => $shiftTemplate->required_staff_count,
-            ]
+            ],
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 

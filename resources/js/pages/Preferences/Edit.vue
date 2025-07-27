@@ -28,6 +28,7 @@ interface Preference {
 
 const props = defineProps<{
     preference: Preference;
+    breadcrumbs: BreadcrumbItem[]
 }>();
 
 const stringToCalendarDate = (dateString: string): CalendarDate => {
@@ -81,21 +82,6 @@ const submit = () => {
         },
     });
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Moje Preferencje',
-        href: '/preferences',
-    },
-    {
-        title: 'Edytuj Preferencję',
-        href: `/preferences/${props.preference.id}/edit`,
-    },
-];
 </script>
 
 <template>

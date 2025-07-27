@@ -21,6 +21,7 @@ interface ShiftTemplateProps {
 
 const props = defineProps<{
     shiftTemplate: ShiftTemplateProps;
+    breadcrumbs: BreadcrumbItem[];
 }>();
 
 const form = useForm({
@@ -81,21 +82,6 @@ const submit = () => {
         },
     });
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Harmonogramy Zmian',
-        href: '/shift-templates',
-    },
-    {
-        title: 'Edytuj Harmonogram Zmian',
-        href: `/shift-templates/${props.shiftTemplate.id}/edit`,
-    },
-];
 </script>
 
 <template>

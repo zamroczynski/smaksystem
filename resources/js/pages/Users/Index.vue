@@ -53,9 +53,9 @@ const props = defineProps<{
         error?: string;
     };
     show_disabled: boolean;
+    breadcrumbs: BreadcrumbItem[];
 }>();
 
-// Usuwanie:
 const form = useForm({});
 const isAlertDialogOpen = ref(false);
 const userToDeleteId = ref<number | null>(null);
@@ -89,7 +89,7 @@ const deleteUserConfirmed = () => {
             },
             onError: (errors) => {
                 toast.error(props.flash?.error || 'Wystąpił nieoczekiwany błąd podczas wyłączania użytkownika.');
-                isAlertDialogOpen.value = false; // Zamknij dialog nawet w przypadku błędu
+                isAlertDialogOpen.value = false;
                 userToDeleteId.value = null;
                 userToDeleteName.value = '';
             },
@@ -97,30 +97,18 @@ const deleteUserConfirmed = () => {
     }
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Zarządzanie pracownikami',
-        href: '/users',
-    },
-];
-
 const showDisabledUsers = ref(props.show_disabled);
 watch(showDisabledUsers, (newValue) => {
     router.get(route('users.index', { show_disabled: newValue }), {}, {
         preserveState: true,
         preserveScroll: true,
-        only: ['users', 'show_disabled'], // Przeładuj tylko te propsy
+        only: ['users', 'show_disabled'],
     });
 });
 const restoreUser = (userId: number) => {
     router.post(route('users.restore', userId), {}, {
         onSuccess: () => {
             toast.success('Użytkownik został pomyślnie przywrócony.');
-            // Po przywróceniu, przeładuj dane
             router.get(route('users.index', { show_disabled: showDisabledUsers.value }), {}, {
                 preserveState: true,
                 preserveScroll: true,

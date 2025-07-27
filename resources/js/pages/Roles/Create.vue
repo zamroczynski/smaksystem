@@ -13,22 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const props = defineProps<{
     permissions: Permission[];
+    breadcrumbs: BreadcrumbItem[];
 }>();
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Zarządzanie Rolami',
-        href: '/roles',
-    },
-    {
-        title: 'Dodaj Rolę',
-        href: '/roles/create',
-    },
-];
 
 const form = useForm({
     name: '',
@@ -36,7 +22,6 @@ const form = useForm({
 });
 
 const hasPermissionsError = () => {
-    // Sprawdza, czy którykolwiek klucz błędu zaczyna się od 'permissions.'
     return Object.keys(form.errors).some(key => key.startsWith('permissions.'));
 };
 
@@ -46,7 +31,6 @@ const getFirstPermissionsError = () => {
             return (form.errors as any)[key];
         }
     }
-    // Jeśli jest ogólny błąd 'permissions', zwróć go
     if (form.errors.permissions) {
         return form.errors.permissions;
     }
@@ -54,18 +38,15 @@ const getFirstPermissionsError = () => {
 };
 
 const handlePermissionChange = (permissionName: string, isChecked: boolean | 'indeterminate') => {
-    // Ignoruj stan 'indeterminate', interesuje nas tylko true/false
     if (isChecked === 'indeterminate') {
         return;
     }
 
     if (isChecked) {
-        // Dodaj nazwę uprawnienia, jeśli checkbox jest zaznaczony i jeszcze jej nie ma
         if (!form.permissions.includes(permissionName)) {
             form.permissions.push(permissionName);
         }
     } else {
-        // Usuń nazwę uprawnienia, jeśli checkbox jest odznaczony
         form.permissions = form.permissions.filter(name => name !== permissionName);
     }
 };

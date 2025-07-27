@@ -53,6 +53,7 @@ const props = defineProps<{
         success?: string;
         error?: string;
     };
+    breadcrumbs: BreadcrumbItem[]
 }>();
 
 watch(
@@ -123,17 +124,6 @@ const enableShiftTemplate = (id: number) => {
         },
     });
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Harmonogramy Zmian',
-        href: '/shift-templates',
-    },
-];
 </script>
 
 <template>

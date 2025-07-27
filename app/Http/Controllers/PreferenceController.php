@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Http\Requests\StorePreferenceRequest;
+use App\Helpers\BreadcrumbsGenerator;
 
 class PreferenceController extends Controller
 {
@@ -26,16 +27,12 @@ class PreferenceController extends Controller
         $preferencesQuery = $user->preferences()->orderBy('date_from', 'desc');
 
         if ($showInactiveOrDeleted) {
-            // Jeśli showInactiveOrDeleted jest true, chcemy pokazać preferencje:
-            // 1. Które są usunięte (Soft Deleted)
-            // 2. Których data_to minęła (są nieaktywne, ale nie usunięte)
             $preferencesQuery->withTrashed()
                 ->where(function ($query) {
                     $query->whereDate('date_to', '<', Carbon::today())
                         ->orWhereNotNull('deleted_at');
                 });
         } else {
-            // Domyślnie pokazujemy tylko aktywne preferencje (data_to >= dzisiaj I nie są usunięte)
             $preferencesQuery->whereDate('date_to', '>=', Carbon::today())
                 ->whereNull('deleted_at');
         }
@@ -44,7 +41,6 @@ class PreferenceController extends Controller
             'show_inactive_or_deleted' => $showInactiveOrDeleted,
         ]);
 
-        // Mapowanie danych dla frontendu
         $preferences->through(function ($preference) {
             $dateTo = Carbon::parse($preference->date_to);
             return [
@@ -58,10 +54,15 @@ class PreferenceController extends Controller
             ];
         });
 
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Moje Preferencje', route('preferences.index'))
+            ->get();
+
         return Inertia::render('Preferences/Index', [
             'preferences' => $preferences,
             'show_inactive_or_deleted' => $showInactiveOrDeleted,
             'flash' => session('flash'),
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -70,7 +71,13 @@ class PreferenceController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Preferences/Create');
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Moje Preferencje', route('preferences.index'))
+            ->add('Dodaj Preferencje', route('preferences.create'))
+            ->get();
+        return Inertia::render('Preferences/Create', [
+            'breadcrumbs' => $breadcrumbs,
+        ]);
     }
 
     /**
@@ -102,6 +109,11 @@ class PreferenceController extends Controller
             return to_route('preferences.index')->with('error', 'Nie masz uprawnień do edycji tej preferencji.');
         }
 
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Moje Preferencje', route('preferences.index'))
+            ->add('Edytuj Preferencję', route('preferences.edit', $preference))
+            ->get();
+
         return Inertia::render('Preferences/Edit', [
             'preference' => [
                 'id' => $preference->id,
@@ -110,6 +122,7 @@ class PreferenceController extends Controller
                 'description' => $preference->description,
                 'availability' => $preference->availability,
             ],
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -139,12 +152,11 @@ class PreferenceController extends Controller
      */
     public function destroy(Preference $preference)
     {
-        // Upewnij się, że tylko właściciel może usunąć preferencję
         if ($preference->user_id !== Auth::id()) {
             return to_route('preferences.index')->with('error', 'Nie masz uprawnień do usunięcia tej preferencji.');
         }
 
-        $preference->delete(); // To ustawi deleted_at
+        $preference->delete();
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie usunięta.');
     }
 
@@ -165,7 +177,7 @@ class PreferenceController extends Controller
             return to_route('preferences.index')->with('error', 'Preferencja nie jest usunięta.');
         }
 
-        $preference->restore(); // To ustawi deleted_at na NULL
+        $preference->restore();
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie przywrócona.');
     }
 }

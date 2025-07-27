@@ -10,6 +10,10 @@ import { toast } from 'vue-sonner';
 import { ref, watch, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
+const props = defineProps<{
+    breadcrumbs: BreadcrumbItem[]
+}>();
+
 const form = useForm({
     name: '',
     time_from: '08:00',
@@ -72,21 +76,6 @@ const submit = () => {
         },
     });
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Harmonogramy Zmian',
-        href: '/shift-templates',
-    },
-    {
-        title: 'Dodaj Harmonogram Zmian',
-        href: '/shift-templates/create',
-    },
-];
 </script>
 
 <template>

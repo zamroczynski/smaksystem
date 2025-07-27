@@ -19,24 +19,23 @@ const props = defineProps<{
         name: string;
         login: string;
         email: string;
-        current_role?: string; // Aktualna rola użytkownika
+        current_role?: string;
     };
-    roles: Array<{ id: number; name: string }>; // Wszystkie dostępne role
+    roles: Array<{ id: number; name: string }>;
     flash?: {
         success?: string;
         error?: string;
     };
+    breadcrumbs: BreadcrumbItem[];
 }>();
 
-// Formularz dla danych użytkownika (bez hasła)
 const userForm = useForm({
     name: props.user.name,
     login: props.user.login,
     email: props.user.email,
-    role_name: props.user.current_role || null, // Ustaw bieżącą rolę lub pusty string
+    role_name: props.user.current_role || null,
 });
 
-// Oddzielny formularz dla zmiany hasła
 const passwordForm = useForm({
     password: '',
 });
@@ -68,7 +67,7 @@ const submitPasswordForm = () => {
     passwordForm.put(route('users.update', props.user.id), {
         onSuccess: () => {
             toast.success(props.flash?.success || 'Hasło pracownika zostało pomyślnie zmienione.');
-            passwordForm.reset(); // Zresetuj tylko formularz hasła
+            passwordForm.reset();
         },
         onError: (errors) => {
             if (Object.keys(errors).length === 0) {
@@ -79,21 +78,6 @@ const submitPasswordForm = () => {
         },
     });
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Zarządzanie Użytkownikami',
-        href: '/users',
-    },
-    {
-        title: `Edycja: ${props.user.name}`,
-        href: `/users/${props.user.id}/edit`,
-    },
-];
 </script>
 
 <template>

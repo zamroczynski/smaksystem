@@ -35,6 +35,7 @@ const props = defineProps<{
         success?: string;
         error?: string;
     };
+    breadcrumbs: BreadcrumbItem[];
 }>();
 
 import { watch } from 'vue';
@@ -49,18 +50,6 @@ watch(
     },
     { deep: true },
 );
-
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Grafiki Pracy',
-        href: route('employee.schedules.index'),
-    },
-];
 
 const getShowScheduleLink = (scheduleId: number) => {
     return route('employee.schedules.show', scheduleId);

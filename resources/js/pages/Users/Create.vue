@@ -20,6 +20,7 @@ const props = defineProps<{
         success?: string;
         error?: string;
     };
+    breadcrumbs: BreadcrumbItem[];
 }>();
 
 const form = useForm({
@@ -35,7 +36,7 @@ const submit = () => {
         onSuccess: () => {
             toast.success(props.flash?.success || 'Użytkownik został pomyślnie dodany.');
             form.reset();
-            router.reload({ only: ['users'] }); // Odświeża tylko prop 'users' na aktualnej stronie
+            router.reload({ only: ['users'] });
         },
         onError: (errors) => {
             if (Object.keys(errors).length === 0) {
@@ -52,21 +53,6 @@ const showPassword = ref(false);
 const togglePasswordVisibility = () => {
     showPassword.value = !showPassword.value;
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Zarządzanie pracownikami',
-        href: '/users',
-    },
-    {
-        title: 'Dodaj pracownika',
-        href: '/users/create',
-    },
-];
 </script>
 
 <template>

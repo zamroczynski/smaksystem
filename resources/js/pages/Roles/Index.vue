@@ -48,6 +48,7 @@ const props = defineProps<{
         error?: string;
     };
     show_disabled: boolean;
+    breadcrumbs: BreadcrumbItem[]
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -67,7 +68,6 @@ const restoreRole = (roleId: number) => {
     router.post(route('roles.restore', roleId), {}, {
         onSuccess: () => {
             toast.success('Rola została pomyślnie przywrócona.');
-            // Po przywróceniu, przeładuj dane, aby zaktualizować listę ról
             router.get(route('roles.index', { show_disabled: showDisabledRoles.value }), {}, {
                 preserveState: true,
                 preserveScroll: true,
@@ -89,11 +89,10 @@ const showDisabledRoles = ref(props.show_disabled);
 
 watch(showDisabledRoles, (newValue) => {
     console.log('showDisabledRoles changed:', newValue);
-    // Kiedy stan przełącznika się zmienia, wykonaj wizytę Inertii
     router.get(route('roles.index', { show_disabled: newValue }), {}, {
         preserveState: true,
         preserveScroll: true,
-        only: ['roles', 'show_disabled'], // Przeładuj tylko te propsy
+        only: ['roles', 'show_disabled'],
     });
 });
 

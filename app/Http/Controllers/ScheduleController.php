@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\UpdateScheduleRequest;
 use App\Services\ScheduleService;
+use App\Helpers\BreadcrumbsGenerator;
 
 class ScheduleController extends Controller
 {
@@ -29,11 +30,15 @@ class ScheduleController extends Controller
     {
         $showArchived = $request->boolean('show_archived');
         $schedules = $this->scheduleService->getSchedulesForIndex($showArchived);
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Grafiki Pracy', route('schedules.index'))
+            ->get();
 
         return Inertia::render('Schedules/Index', [
             'schedules' => $schedules,
             'show_archived' => $showArchived,
             'flash' => session('flash'),
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -43,9 +48,14 @@ class ScheduleController extends Controller
     public function create()
     {
         $activeShiftTemplates = ShiftTemplate::all();
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Grafiki Pracy', route('schedules.index'))
+            ->add('Dodaj Grafik Pracy', route('schedules.create'))
+            ->get();
 
         return Inertia::render('Schedules/Create', [
             'activeShiftTemplates' => $activeShiftTemplates,
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -73,20 +83,18 @@ class ScheduleController extends Controller
 
         $scheduleData = $this->scheduleService->getScheduleDetailsForEdit($schedule);
 
-        $breadcrumbs = [
-            ['title' => 'Panel nawigacyjny', 'href' => route('dashboard')],
-            ['title' => 'Grafiki Pracy', 'href' => route('schedules.index')],
-            ['title' => 'Edycja: ' . $schedule->name, 'href' => route('schedules.edit', $schedule->id)],
-        ];
-
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Grafiki Pracy', route('schedules.index'))
+            ->add('Edycja: ' . $schedule->name, route('schedules.edit', $schedule->id))
+            ->get();
         return Inertia::render('Schedules/Edit', [
             'schedule' => $scheduleData['schedule'],
             'assignedShiftTemplates' => $scheduleData['assignedShiftTemplates'],
             'users' => $scheduleData['users'],
-            'initialAssignments' => $scheduleData['initialAssignments'], // Zmieniono z 'assignments' na 'initialAssignments'
+            'initialAssignments' => $scheduleData['initialAssignments'],
             'monthDays' => $scheduleData['monthDays'],
-            'preferences' => $scheduleData['preferences'], // Dodano preferencje
-            'breadcrumbs' => $breadcrumbs, // Tutaj przekazujemy breadcrumbs
+            'preferences' => $scheduleData['preferences'],
+            'breadcrumbs' => $breadcrumbs,
             'flash' => session('flash'),
         ]);
     }

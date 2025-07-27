@@ -19,6 +19,9 @@ import { cn } from '@/lib/utils';
 import { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone } from "@internationalized/date";
 
+const props = defineProps<{
+    breadcrumbs: BreadcrumbItem[]
+}>();
 
 const getTodayAsCalendarDate = (): CalendarDate => {
     const today = new Date();
@@ -78,21 +81,6 @@ const submit = () => {
         },
     });
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Moje Preferencje',
-        href: '/preferences',
-    },
-    {
-        title: 'Dodaj Preferencję',
-        href: '/preferences/create',
-    },
-];
 </script>
 
 <template>

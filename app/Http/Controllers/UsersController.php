@@ -10,6 +10,7 @@ use App\Services\UserService;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\StoreUserRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\BreadcrumbsGenerator;
 
 class UsersController extends Controller
 {
@@ -50,11 +51,15 @@ class UsersController extends Controller
             ];
         });
 
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Pracownikami', route('users.index'))
+            ->get();
 
         return Inertia::render('Users/Index', [
             'users' => $users,
             'flash' => session('flash'),
             'show_disabled' => $showDisabled,
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -63,11 +68,15 @@ class UsersController extends Controller
      */
     public function create()
     {
-        // Pobierz wszystkie dostępne role dla Selecta
-        $roles = Role::all(['id', 'name']); // Upewnij się, że model Role jest zaimportowany
+        $roles = Role::all(['id', 'name']);
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Pracownikami', route('users.index'))
+            ->add('Dodaj pracownika', route('users.create'))
+            ->get();
 
         return Inertia::render('Users/Create', [
             'roles' => $roles,
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -77,7 +86,6 @@ class UsersController extends Controller
     public function store(StoreUserRequest $request)
     {
         $validatedData = $request->validated();
-
         $this->userService->create($validatedData);
 
         return to_route('users.index')
@@ -90,6 +98,10 @@ class UsersController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all(['id', 'name']);
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Pracownikami', route('users.index'))
+            ->add('Edytuj pracownika', route('users.edit', $user))
+            ->get();
 
         return Inertia::render('Users/Edit', [
             'user' => [
@@ -97,10 +109,10 @@ class UsersController extends Controller
                 'name' => $user->name,
                 'login' => $user->login,
                 'email' => $user->email,
-                // Pobierz bieżącą rolę użytkownika, jeśli istnieje
                 'current_role' => $user->getRoleNames()->first(),
             ],
-            'roles' => $roles, // Przekaż wszystkie dostępne role
+            'roles' => $roles,
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -121,13 +133,11 @@ class UsersController extends Controller
      */
     public function destroy(User $user)
     {
-        // Sprawdź, czy użytkownik próbuje usunąć samego siebie
         if (Auth::id() === $user->id) {
             return redirect()->route('users.index')->with('error', 'Nie możesz usunąć samego siebie!');
         }
 
         if ($user->hasRole('admin')) {
-             // Sprawdź, ile aktywnych użytkowników ma rolę 'Kierownik'
             $adminRole = Role::where('name', 'Kierownik')->first(); 
             if ($adminRole) {
                 $activeAdminsCount = User::role($adminRole->name)->whereNull('deleted_at')->count();

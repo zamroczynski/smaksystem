@@ -15,22 +15,8 @@ const props = defineProps<{
     role: { id: number; name: string; };
     allPermissions: Permission[];
     rolePermissions: string[];
+    breadcrumbs: BreadcrumbItem[];
 }>();
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Zarządzanie Rolami',
-        href: '/roles',
-    },
-    {
-        title: `Edytuj Rolę: ${props.role.name}`,
-        href: `/roles/${props.role.id}/edit`,
-    },
-];
 
 const form = useForm({
     name: props.role.name,

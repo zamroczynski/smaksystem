@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateRoleRequest;
 use App\Services\RoleService;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Helpers\BreadcrumbsGenerator;
 
 class RolesController extends Controller
 {
@@ -47,10 +48,15 @@ class RolesController extends Controller
             ];
         });
 
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Rolami', route('roles.index'))
+            ->get();
+
         return Inertia::render('Roles/Index', [
             'roles' => $roles,
             'flash' => session('flash'),
             'show_disabled' => $showDisabled,
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -61,8 +67,14 @@ class RolesController extends Controller
     {
         $permissions = Permission::all(['id', 'name']); 
 
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Rolami', route('roles.index'))
+            ->add('Dodaj nową rolę', route('roles.create'))
+            ->get();
+
         return Inertia::render('Roles/Create', [
             'permissions' => $permissions,
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 
@@ -90,10 +102,16 @@ class RolesController extends Controller
         $allPermissions = Permission::all(['id', 'name']);
         $rolePermissions = $role->permissions->pluck('name')->toArray();
 
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Rolami', route('roles.index'))
+            ->add('Edytuj rolę', route('roles.edit', $role))
+            ->get();
+
         return Inertia::render('Roles/Edit', [
             'role' => $role->only('id', 'name'),
             'allPermissions' => $allPermissions,
             'rolePermissions' => $rolePermissions,
+            'breadcrumbs' => $breadcrumbs,
         ]);
     }
 

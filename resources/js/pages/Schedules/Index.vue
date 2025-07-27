@@ -51,6 +51,7 @@ const props = defineProps<{
         success?: string;
         error?: string;
     };
+    breadcrumbs: BreadcrumbItem[];
 }>();
 
 watch(
@@ -168,18 +169,6 @@ const unpublishSchedule = (id: number) => {
         },
     });
 };
-
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Grafiki Pracy',
-        href: '/schedules',
-    },
-];
 </script>
 
 <template>

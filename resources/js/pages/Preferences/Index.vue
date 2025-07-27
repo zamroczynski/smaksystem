@@ -49,18 +49,8 @@ const props = defineProps<{
         error?: string;
     };
     show_inactive_or_deleted: boolean;
+    breadcrumbs: BreadcrumbItem[]
 }>();
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Moje Preferencje',
-        href: '/preferences',
-    },
-];
 
 const showInactiveOrDeleted = ref(props.show_inactive_or_deleted);
 

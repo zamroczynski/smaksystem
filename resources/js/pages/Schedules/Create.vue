@@ -32,7 +32,8 @@ interface ShiftTemplate {
 
 interface CreateProps {
     activeShiftTemplates: ShiftTemplate[];
-    errors: Record<string, string>; // Błędy walidacji
+    errors: Record<string, string>;
+    breadcrumbs: BreadcrumbItem[];
 }
 
 const props = defineProps<CreateProps>();
@@ -60,7 +61,7 @@ const saveScheduleConfirmed = () => {
             toast.success('Grafik pracy został pomyślnie dodany.');
             form.reset();
             form.period_start_date = format(new Date(), 'yyyy-MM-01');
-            isConfirmSaveDialogOpen.value = false; // Zamknij dialog po sukcesie
+            isConfirmSaveDialogOpen.value = false;
         },
         onError: (errors) => {
             if (Object.keys(errors).length === 0) {
@@ -68,25 +69,10 @@ const saveScheduleConfirmed = () => {
             } else {
                 toast.error('Wystąpiły błędy walidacji. Sprawdź formularz.');
             }
-            isConfirmSaveDialogOpen.value = false; // Zamknij dialog nawet przy błędach
+            isConfirmSaveDialogOpen.value = false;
         },
     });
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Grafiki Pracy',
-        href: '/schedules',
-    },
-    {
-        title: 'Dodaj Grafik Pracy',
-        href: '/schedules/create',
-    },
-];
 
 const selectedDate = computed({
     get: () => form.period_start_date ? parseDate(form.period_start_date) : undefined,
