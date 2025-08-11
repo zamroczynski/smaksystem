@@ -23,23 +23,22 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          tools: composer:v2
 
-      - name: Install Dependencies
-        run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          npm install
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
 
-      - name: Run Pint
-        run: vendor/bin/pint
+      - name: Install PHP Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Format Frontend
-        run: npm run format
+      - name: Install Node Dependencies
+        run: npm ci
 
-      - name: Lint Frontend
+      - name: Run Pint (PHP Formatter)
+        run: vendor/bin/pint --test
+
+      - name: Run ESLint (JavaScript Linter)
         run: npm run lint
-
-      # - name: Commit Changes
-      #   uses: stefanzweifel/git-auto-commit-action@v5
-      #   with:
-      #     commit_message: fix code style
-      #     commit_options: '--no-verify'
