@@ -12,7 +12,7 @@ import { type DateRange } from 'reka-ui'
 
 import { type Ref, ref, watch } from 'vue';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
-import { DateFormatter, type DateValue } from '@internationalized/date';
+import { DateFormatter } from '@internationalized/date';
 import { RangeCalendar } from '@/components/ui/range-calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -87,7 +87,7 @@ const submit = () => {
 
     <Head title="Dodaj Preferencję" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <AppLayout :breadcrumbs="props.breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <Card class="w-full max-w-2xl mx-auto">
                 <CardHeader>

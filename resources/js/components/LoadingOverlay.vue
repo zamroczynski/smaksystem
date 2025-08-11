@@ -14,25 +14,23 @@ import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 const loading = ref(false);
-let timer: ReturnType<typeof setTimeout> | null = null; // Zmieniona typologia dla timer
+let timer: ReturnType<typeof setTimeout> | null = null;
 
 router.on('start', () => {
-    // Ustaw opóźnienie, aby uniknąć mrugania przy szybkich przejściach
     timer = setTimeout(() => {
         loading.value = true;
-    }, 250); // Opóźnienie 250ms
+    }, 250);
 });
 
-router.on('finish', (event) => {
+router.on('finish', () => {
     if (timer) {
-        clearTimeout(timer); // Wyczyść timer, jeśli wizyta zakończyła się przed jego upływem
+        clearTimeout(timer);
     }
     loading.value = false;
 });
 </script>
 
 <style>
-/* Style dla animacji fade */
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.3s ease;
 }

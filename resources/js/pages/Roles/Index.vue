@@ -2,7 +2,6 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { type Role } from '@/types/models';
 
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -50,17 +49,6 @@ const props = defineProps<{
     show_disabled: boolean;
     breadcrumbs: BreadcrumbItem[]
 }>();
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Panel nawigacyjny',
-        href: '/dashboard',
-    },
-    {
-        title: 'Zarządzanie Rolami',
-        href: '/roles',
-    },
-];
 
 const form = useForm({});
 
@@ -124,7 +112,7 @@ const deleteRoleConfirmed = () => {
                     only: ['roles', 'show_disabled'],
                 });
             },
-            onError: (errors) => {
+            onError: () => {
                 toast.error(props.flash?.error || 'Wystąpił błąd podczas wyłączania roli.');
                 isAlertDialogOpen.value = false;
                 roleToDeleteId.value = null;

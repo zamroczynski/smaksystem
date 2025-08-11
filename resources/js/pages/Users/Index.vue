@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { type User } from '@/types/models';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 
 import { Button } from '@/components/ui/button';
@@ -63,9 +62,6 @@ const currentPage = ref(props.users.current_page);
 const currentGlobalFilter = ref(props.filter);
 const showDisabledUsers = ref(props.show_disabled);
 
-const currentSortBy = ref(props.sort_by || 'id');
-const currentSortDirection = ref(props.sort_direction || 'asc');
-
 const form = useForm({});
 const isAlertDialogOpen = ref(false);
 const userToDeleteId = ref<number | null>(null);
@@ -93,7 +89,7 @@ const deleteUserConfirmed = () => {
                 userToDeleteName.value = '';
                 fetchTableData();
             },
-            onError: (errors) => {
+            onError: () => {
                 toast.error(props.flash?.error || 'Wystąpił nieoczekiwany błąd podczas wyłączania użytkownika.');
                 isAlertDialogOpen.value = false;
                 userToDeleteId.value = null;

@@ -3,11 +3,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'vue-sonner';
-import { ref, watch, computed, nextTick } from 'vue'; // Dodano nextTick
+import { ref, watch, computed } from 'vue';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Table,
@@ -19,9 +17,8 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/utils';
 
-// Nowy interfejs dla preferencji
 interface UserPreferences {
-    [date: string]: boolean; // date string (YYYY-MM-DD) maps to availability (true/false)
+    [date: string]: boolean;
 }
 
 interface EditProps {
@@ -43,7 +40,7 @@ interface EditProps {
         id: number;
         name: string;
     }[];
-    initialAssignments: Record<string, number | null>; // "shiftTemplateId_date_position" -> user_id
+    initialAssignments: Record<string, number | null>;
     monthDays: {
         date: string;
         day_number: number;
@@ -51,7 +48,7 @@ interface EditProps {
         is_saturday: boolean;
         is_holiday: boolean;
     }[];
-    preferences: Record<string, UserPreferences>; // userId -> { date -> availability }
+    preferences: Record<string, UserPreferences>;
     breadcrumbs: BreadcrumbItem[];
     flash?: {
         success?: string;
@@ -84,18 +81,12 @@ const form = useForm({
 
 const localValidationErrors = ref<Record<string, string | null>>({});
 
-// Stan do kontrolowania, która komórka jest edytowana
 const editingCell = ref<{ shiftTemplateId: number; date: string; position: number } | null>(null);
 
-// Funkcja do aktywowania edycji komórki
 const activateEdit = (shiftTemplateId: number, date: string, position: number) => {
     editingCell.value = { shiftTemplateId, date, position };
-    // Opcjonalnie: automatyczne otwarcie Selecta po aktywacji edycji
-    // Może wymagać dostępu do referencji do komponentu Select
-    // nextTick(() => { /* logika otwarcia Select */ });
 };
 
-// Funkcja do sprawdzania, czy dana komórka jest w trybie edycji
 const isEditing = (shiftTemplateId: number, date: string, position: number): boolean => {
     return (
         editingCell.value?.shiftTemplateId === shiftTemplateId &&
@@ -104,7 +95,6 @@ const isEditing = (shiftTemplateId: number, date: string, position: number): boo
     );
 };
 
-// Funkcja do dezaktywacji edycji (np. po wybraniu wartości lub kliknięciu poza)
 const deactivateEdit = () => {
     editingCell.value = null;
 };
@@ -123,14 +113,12 @@ const monthDayChunks = computed(() => {
     return chunkArray(props.monthDays, 7);
 });
 
-// Funkcja do pobierania przypisanego użytkownika dla danego pola
 const getAssignedUser = (shiftTemplateId: number, date: string, position: number): string | null => {
     const key = `${shiftTemplateId}_${date}_${position}`;
     const assignedId = form.assignments[key];
     return assignedId !== undefined && assignedId !== null ? String(assignedId) : "-1";
 };
 
-// Funkcja do ustawiania przypisanego użytkownika
 const setAssignment = (shiftTemplateId: number, date: string, position: number, userId: string | null) => {
     const key = `${shiftTemplateId}_${date}_${position}`;
     if (userId === "-1" || userId === null || userId === '') {
@@ -144,7 +132,7 @@ const setAssignment = (shiftTemplateId: number, date: string, position: number, 
         };
     }
     localValidationErrors.value[key] = null;
-    deactivateEdit(); // Dezaktywuj edycję po wybraniu wartości
+    deactivateEdit();
 };
 
 const getAssignmentError = (shiftTemplateId: number, date: string, position: number): string | null => {
@@ -156,7 +144,7 @@ const getAssignmentError = (shiftTemplateId: number, date: string, position: num
     for (const errorKey in form.errors) {
         if (errorKey.startsWith('assignments.') && errorKey.endsWith('.user_id')) {
             const assignmentsAsArray = Object.entries(form.assignments)
-                .filter(([key, value]) => value !== null && value !== "-1")
+                .filter(([key, value]) => value !== null && value !== "-1" && key===key)
                 .map(([key, value]) => {
                     const parts = key.split('_');
                     return {
@@ -244,7 +232,6 @@ const submit = () => {
             console.error('Błędy walidacji:', errors);
             for (const key in errors) {
                 if (key.startsWith('assignments.')) {
-                    const parts = key.split('.');
                     toast.error('Wystąpiły błędy walidacji w przypisaniach. Sprawdź wszystkie pola.');
                 } else {
                     toast.error((errors as Record<string, string>)[key]);

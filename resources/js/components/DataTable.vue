@@ -5,7 +5,6 @@ import {
     getCoreRowModel,
     useVueTable,
     ColumnDef,
-    SortingState,
     getFilteredRowModel,
 } from '@tanstack/vue-table';
 import {
@@ -19,7 +18,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowUpDown, ChevronDown } from 'lucide-vue-next';
-import { valueUpdater } from '@/lib/utils';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];

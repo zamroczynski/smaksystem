@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
-import { type Role, type Permission } from '@/types/models';
+import { type Permission } from '@/types/models';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

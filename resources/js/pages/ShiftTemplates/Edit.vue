@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'vue-sonner';
-import { ref, watch, computed } from 'vue';
+import { watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
 interface ShiftTemplateProps {
@@ -49,8 +49,8 @@ const calculateDuration = () => {
     const [fromHours, fromMinutes] = timeFrom.split(':').map(Number);
     const [toHours, toMinutes] = timeTo.split(':').map(Number);
 
-    let totalFromMinutes = fromHours * 60 + fromMinutes;
-    let totalToMinutes = toHours * 60 + toMinutes;
+    const totalFromMinutes = fromHours * 60 + fromMinutes;
+    const totalToMinutes = toHours * 60 + toMinutes;
 
     let durationInMinutes;
 

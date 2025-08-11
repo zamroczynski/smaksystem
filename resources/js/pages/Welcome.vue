@@ -10,32 +10,37 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+interface WelcomeData {
+  animateButtons: boolean;
+}
+
+export default defineComponent({
   name: 'WelcomeView',
-  data() {
+  data(): WelcomeData {
     return {
-      animateButtons: false, // Zmieniona nazwa zmiennej do animacji przycisków
+      animateButtons: false,
     };
   },
   mounted() {
-    // Opóźnienie przed uruchomieniem animacji wjazdu przycisków
     this.$nextTick(() => {
       setTimeout(() => {
         this.animateButtons = true;
-      }, 300); // Przyciski zaczną wjeżdżać po 0.3 sekundy
+      }, 300);
     });
   },
   methods: {
-    route(name) {
-      const routes = {
+    route(name: string): string {
+      const routes: { [key: string]: string } = {
         'login': '/login',
         'about': '/about'
       };
       return routes[name] || '#';
     }
   }
-}
+});
 </script>
 
 <style scoped>

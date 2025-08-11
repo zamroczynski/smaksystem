@@ -46,10 +46,20 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+interface AboutData {
+  animateFirst: boolean;
+  animateSecond: boolean;
+  animateThird: boolean;
+  animateFourth: boolean;
+  observer: IntersectionObserver | null;
+}
+
+export default defineComponent({
   name: 'AboutView',
-  data() {
+  data(): AboutData {
     return {
       animateFirst: false,
       animateSecond: false,
@@ -66,7 +76,7 @@ export default {
     });
 
     this.observer = new IntersectionObserver(
-      (entries) => {
+      (entries: IntersectionObserverEntry[]) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             if (entry.target === this.$refs.secondSection) {
@@ -76,7 +86,9 @@ export default {
             } else if (entry.target === this.$refs.fourthSection) {
               this.animateFourth = true;
             }
-            this.observer.unobserve(entry.target);
+            if (this.observer) {
+              this.observer.unobserve(entry.target);
+            }
           }
         });
       },
@@ -87,14 +99,16 @@ export default {
       }
     );
 
-    if (this.$refs.secondSection) {
-      this.observer.observe(this.$refs.secondSection);
+    // Typowanie $refs
+    const refs = this.$refs as { [key: string]: HTMLElement | undefined };
+    if (refs.secondSection) {
+      this.observer.observe(refs.secondSection);
     }
-    if (this.$refs.thirdSection) {
-      this.observer.observe(this.$refs.thirdSection);
+    if (refs.thirdSection) {
+      this.observer.observe(refs.thirdSection);
     }
-    if (this.$refs.fourthSection) {
-      this.observer.observe(this.$refs.fourthSection);
+    if (refs.fourthSection) {
+      this.observer.observe(refs.fourthSection);
     }
   },
   beforeUnmount() {
@@ -103,8 +117,8 @@ export default {
     }
   },
   methods: {
-    route(name) {
-      const routes = {
+    route(name: string): string {
+      const routes: { [key: string]: string } = {
         'welcome': '/',
         'login': '/login',
         'about': '/about',
@@ -112,7 +126,7 @@ export default {
       return routes[name] || '#';
     }
   }
-}
+});
 </script>
 
 <style scoped>

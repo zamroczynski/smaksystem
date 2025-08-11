@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'vue-sonner';
 import Pagination from '@/components/Pagination.vue';
-import { computed } from 'vue';
 
 interface Schedule {
     id: number;

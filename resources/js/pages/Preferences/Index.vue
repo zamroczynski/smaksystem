@@ -18,9 +18,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 
-// Definicja propsów
 const props = defineProps<{
     preferences: {
         data: Array<{

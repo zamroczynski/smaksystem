@@ -73,11 +73,6 @@ const monthDayChunks = computed(() => {
     return chunkArray(props.scheduleData.monthDays, 7);
 });
 
-const getUserName = (userId: number) => {
-    const user = props.scheduleData.users.find(u => u.id === userId);
-    return user ? user.name : 'Nieznany';
-};
-
 const getAssignmentsForCell = (shiftTemplateId: number, date: string, position: number) => {
     const key = `${shiftTemplateId}_${date}_${position}`;
     return props.scheduleData.assignments[key] || [];
