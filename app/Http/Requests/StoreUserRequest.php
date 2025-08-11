@@ -24,9 +24,9 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'login' => 'required|string|max:255|unique:users,login', // Login musi być unikalny
-            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')], // Email może być pusty, ale jeśli jest, to musi być unikalny i poprawny
-            'password' => 'required|string|min:8', // Hasło wymagane i min. 8 znaków
+            'login' => 'required|string|max:30|min:3|unique:users,login',
+            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
+            'password' => 'required|string|min:8',
             'role_name' => ['nullable', 'string', Rule::exists('roles', 'name')],
         ];
     }
