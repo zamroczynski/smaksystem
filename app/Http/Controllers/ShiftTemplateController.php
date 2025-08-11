@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreShiftTemplateRequest;
 use App\Models\ShiftTemplate;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
-use App\Helpers\BreadcrumbsGenerator;
 
 class ShiftTemplateController extends Controller
 {
@@ -63,6 +63,7 @@ class ShiftTemplateController extends Controller
             ->add('Harmonogramy Zmian', route('shift-templates.index'))
             ->add('Dodaj Harmonogram Zmian', route('shift-templates.create'))
             ->get();
+
         return Inertia::render('ShiftTemplates/Create', [
             'breadcrumbs' => $breadcrumbs,
         ]);
@@ -88,6 +89,7 @@ class ShiftTemplateController extends Controller
             ->add('Harmonogramy Zmian', route('shift-templates.index'))
             ->add('Edytuj Harmonogram Zmian', route('shift-templates.edit', $shiftTemplate))
             ->get();
+
         return Inertia::render('ShiftTemplates/Edit', [
             'shiftTemplate' => [
                 'id' => $shiftTemplate->id,
@@ -118,6 +120,7 @@ class ShiftTemplateController extends Controller
     public function destroy(ShiftTemplate $shiftTemplate)
     {
         $shiftTemplate->delete();
+
         return back()->with('success', 'Zmiana została pomyślnie usunięta.');
     }
 
@@ -128,6 +131,7 @@ class ShiftTemplateController extends Controller
     {
         $shiftTemplate = ShiftTemplate::withTrashed()->findOrFail($id);
         $shiftTemplate->restore();
+
         return back()->with('success', 'Zmiana została pomyślnie przywrócona.');
     }
 }

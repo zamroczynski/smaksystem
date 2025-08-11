@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Schedule;
-use App\Models\ShiftTemplate;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\UpdateScheduleRequest;
+use App\Models\Schedule;
+use App\Models\ShiftTemplate;
 use App\Services\ScheduleService;
-use App\Helpers\BreadcrumbsGenerator;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ScheduleController extends Controller
 {
@@ -85,8 +85,9 @@ class ScheduleController extends Controller
 
         $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
             ->add('Grafiki Pracy', route('schedules.index'))
-            ->add('Edycja: ' . $schedule->name, route('schedules.edit', $schedule->id))
+            ->add('Edycja: '.$schedule->name, route('schedules.edit', $schedule->id))
             ->get();
+
         return Inertia::render('Schedules/Edit', [
             'schedule' => $scheduleData['schedule'],
             'assignedShiftTemplates' => $scheduleData['assignedShiftTemplates'],
@@ -128,6 +129,7 @@ class ScheduleController extends Controller
     {
         $schedule->update(['status' => 'archived']);
         $schedule->delete();
+
         return back()->with('success', 'Grafik pracy został pomyślnie zarchiwizowany.');
     }
 
@@ -139,6 +141,7 @@ class ScheduleController extends Controller
         $schedule = Schedule::withTrashed()->findOrFail($id);
         $schedule->restore();
         $schedule->update(['status' => 'draft']);
+
         return back()->with('success', 'Grafik pracy został pomyślnie przywrócony.');
     }
 
@@ -148,6 +151,7 @@ class ScheduleController extends Controller
     public function publish(Schedule $schedule)
     {
         $schedule->update(['status' => 'published']);
+
         return back()->with('success', 'Grafik pracy został pomyślnie opublikowany.');
     }
 
@@ -157,6 +161,7 @@ class ScheduleController extends Controller
     public function unpublish(Schedule $schedule)
     {
         $schedule->update(['status' => 'draft']);
+
         return back()->with('success', 'Grafik pracy został przestawiony na status roboczy.');
     }
 }

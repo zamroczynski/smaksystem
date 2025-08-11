@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Services\RoleService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Services\RoleService;
 
 class UpdateRoleRequest extends FormRequest
 {
@@ -15,6 +15,7 @@ class UpdateRoleRequest extends FormRequest
         parent::__construct();
         $this->roleService = $roleService;
     }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -31,6 +32,7 @@ class UpdateRoleRequest extends FormRequest
     public function rules(): array
     {
         $roleId = $this->route('role')->id;
+
         return [
             // Nazwa roli musi być unikalna, ale ignorujemy bieżącą rolę
             'name' => [

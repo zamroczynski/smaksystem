@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Role;
-use Inertia\Inertia; 
-use App\Services\UserService; 
-use App\Http\Requests\UpdateUserRequest;
-use App\Http\Requests\StoreUserRequest;
-use Illuminate\Support\Facades\Auth;
 use App\Helpers\BreadcrumbsGenerator;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\UserService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class UsersController extends Controller
 {
@@ -49,11 +49,11 @@ class UsersController extends Controller
 
         if ($filter) {
             $usersQuery->where(function ($query) use ($filter) {
-                $query->where('name', 'like', '%' . $filter . '%')
-                      ->orWhere('email', 'like', '%' . $filter . '%')
-                      ->orWhereHas('roles', function ($q) use ($filter) {
-                          $q->where('name', 'like', '%' . $filter . '%');
-                      });
+                $query->where('name', 'like', '%'.$filter.'%')
+                    ->orWhere('email', 'like', '%'.$filter.'%')
+                    ->orWhereHas('roles', function ($q) use ($filter) {
+                        $q->where('name', 'like', '%'.$filter.'%');
+                    });
             });
         }
 
@@ -62,10 +62,11 @@ class UsersController extends Controller
             'filter' => $filter,
             'sort' => $sort,
             'direction' => $direction,
-        ]); 
+        ]);
 
         $users->through(function ($user) {
             $user->load('roles');
+
             return [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -167,7 +168,7 @@ class UsersController extends Controller
         }
 
         if ($user->hasRole('admin')) {
-            $adminRole = Role::where('name', 'Kierownik')->first(); 
+            $adminRole = Role::where('name', 'Kierownik')->first();
             if ($adminRole) {
                 $activeAdminsCount = User::role($adminRole->name)->whereNull('deleted_at')->count();
 

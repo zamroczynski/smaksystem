@@ -3,17 +3,15 @@
 namespace App\Services;
 
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
     /**
      * Tworzy nowego użytkownika i przypisuje mu rolę.
      *
-     * @param array $data Dane z requestu (walidowane).
+     * @param  array  $data  Dane z requestu (walidowane).
      * @return User Nowo utworzony użytkownik.
      */
     public function create(array $data): User
@@ -27,7 +25,7 @@ class UserService
             ]);
 
             // Przypisz rolę, jeśli została wybrana i nie jest null
-            if (isset($data['role_name']) && !is_null($data['role_name'])) {
+            if (isset($data['role_name']) && ! is_null($data['role_name'])) {
                 $user->assignRole($data['role_name']);
             }
 
@@ -38,8 +36,8 @@ class UserService
     /**
      * Aktualizuje dane użytkownika i jego role.
      *
-     * @param User $user Użytkownik do zaktualizowania.
-     * @param array $data Dane z requestu (walidowane).
+     * @param  User  $user  Użytkownik do zaktualizowania.
+     * @param  array  $data  Dane z requestu (walidowane).
      * @return User Zaktualizowany użytkownik.
      */
     public function update(User $user, array $data): User
@@ -50,13 +48,13 @@ class UserService
             $user->email = $data['email'] ?? null;
 
             // Zmień hasło tylko, jeśli zostało podane
-            if (!empty($data['password'])) {
+            if (! empty($data['password'])) {
                 $user->password = Hash::make($data['password']);
             }
 
             $user->save();
 
-            if (isset($data['role_name']) && !is_null($data['role_name'])) {
+            if (isset($data['role_name']) && ! is_null($data['role_name'])) {
                 $user->syncRoles([$data['role_name']]);
             } else {
                 // Jeśli rola nie została wybrana lub ustawiono null (dla "Brak roli"), usuń wszystkie role

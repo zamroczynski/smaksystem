@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
-use Illuminate\Http\Request;
-use App\Models\Role;
-use Spatie\Permission\Models\Permission;
+use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
+use App\Models\Role;
 use App\Services\RoleService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Helpers\BreadcrumbsGenerator;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
 
 class RolesController extends Controller
 {
@@ -65,7 +64,7 @@ class RolesController extends Controller
      */
     public function create()
     {
-        $permissions = Permission::all(['id', 'name']); 
+        $permissions = Permission::all(['id', 'name']);
 
         $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
             ->add('Zarządzanie Rolami', route('roles.index'))
@@ -145,7 +144,7 @@ class RolesController extends Controller
         $user = Auth::user();
         // Sprawdź, czy użytkownik próbuje usunąć rolę, którą sam posiada
         if ($user->hasRole($role->name)) {
-             return to_route('roles.index')->with('error', 'Nie możesz wyłączyć roli, którą sam posiadasz!');
+            return to_route('roles.index')->with('error', 'Nie możesz wyłączyć roli, którą sam posiadasz!');
         }
 
         $this->roleService->destroyRole($role);

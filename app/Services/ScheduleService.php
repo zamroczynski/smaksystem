@@ -2,15 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\Preference;
 use App\Models\Schedule;
-use App\Models\ShiftTemplate;
 use App\Models\ScheduleAssignment;
 use App\Models\User;
-use App\Models\Preference;
+use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class ScheduleService
@@ -29,12 +27,11 @@ class ScheduleService
         }
 
         $schedules = $query->orderByDesc('period_start_date')
-                           ->orderBy('name')
-                           ->paginate($perPage)
-                           ->appends([
-                               'show_archived' => $showArchived,
-                           ]);
-
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->appends([
+                'show_archived' => $showArchived,
+            ]);
 
         return $schedules->through(function ($schedule) {
             return [
@@ -81,18 +78,18 @@ class ScheduleService
 
         $assignments = [];
         foreach ($schedule->assignments as $assignment) {
-            $key = $assignment->shift_template_id . '_' . $assignment->assignment_date->format('Y-m-d') . '_' . $assignment->position;
+            $key = $assignment->shift_template_id.'_'.$assignment->assignment_date->format('Y-m-d').'_'.$assignment->position;
             $assignments[$key] = $assignment->user_id;
         }
 
         $preferences = Preference::query()
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('date_from', [$startDate, $endDate])
-                      ->orWhereBetween('date_to', [$startDate, $endDate])
-                      ->orWhere(function ($query) use ($startDate, $endDate) {
-                          $query->where('date_from', '<', $startDate)
-                                ->where('date_to', '>', $endDate);
-                      });
+                    ->orWhereBetween('date_to', [$startDate, $endDate])
+                    ->orWhere(function ($query) use ($startDate, $endDate) {
+                        $query->where('date_from', '<', $startDate)
+                            ->where('date_to', '>', $endDate);
+                    });
             })
             ->select('user_id', 'date_from', 'date_to', 'availability')
             ->get()
@@ -128,10 +125,8 @@ class ScheduleService
     /**
      * Update schedule details and assignments.
      *
-     * @param Schedule $schedule
-     * @param array $validatedData Validated data for the schedule (name, period_start_date, status)
-     * @param array $newAssignments New assignments data
-     * @return void
+     * @param  array  $validatedData  Validated data for the schedule (name, period_start_date, status)
+     * @param  array  $newAssignments  New assignments data
      */
     public function updateScheduleAssignments(Schedule $schedule, array $newAssignments): void
     {
@@ -157,11 +152,11 @@ class ScheduleService
                         'updated_at' => Carbon::now(),
                     ];
                 } else {
-                    Log::warning('Skipping invalid assignment data structure: ' . json_encode($assignmentData));
+                    Log::warning('Skipping invalid assignment data structure: '.json_encode($assignmentData));
                 }
             }
 
-            if (!empty($assignmentsToInsert)) {
+            if (! empty($assignmentsToInsert)) {
                 ScheduleAssignment::insert($assignmentsToInsert);
             }
         });
@@ -190,9 +185,7 @@ class ScheduleService
     /**
      * Get detailed schedule data for worker's view.
      *
-     * @param Schedule $schedule
-     * @param int|null $userId Optional: User ID to filter assignments.
-     * @return array
+     * @param  int|null  $userId  Optional: User ID to filter assignments.
      */
     public function getScheduleDetailsForWorkerShow(Schedule $schedule, ?int $userId = null): array
     {
@@ -202,9 +195,9 @@ class ScheduleService
             },
             'assignments' => function ($query) use ($userId) {
                 $query->select('schedule_id', 'shift_template_id', 'user_id', 'assignment_date', 'position')
-                    ->with('user:id,name'); 
+                    ->with('user:id,name');
                 if ($userId) {
-                    $query->where('user_id', $userId); 
+                    $query->where('user_id', $userId);
                 }
             },
         ]);
@@ -215,7 +208,6 @@ class ScheduleService
         $endDate = $startDate->copy()->endOfMonth();
         $monthDays = [];
         Carbon::setLocale('pl');
-        
 
         for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
             $monthDays[] = [
@@ -239,7 +231,6 @@ class ScheduleService
             });
         })->toArray();
 
-
         return [
             'schedule' => [
                 'id' => $schedule->id,
@@ -248,10 +239,10 @@ class ScheduleService
                 'status' => $schedule->status,
             ],
             'shiftTemplates' => $schedule->shiftTemplates,
-            'users' => $users, 
-            'assignments' => $assignments, 
+            'users' => $users,
+            'assignments' => $assignments,
             'monthDays' => $monthDays,
-            'view_mode' => $userId ? 'my' : 'full', 
+            'view_mode' => $userId ? 'my' : 'full',
         ];
     }
 
@@ -268,7 +259,7 @@ class ScheduleService
             },
             'assignments' => function ($query) use ($userId) {
                 $query->select('schedule_id', 'shift_template_id', 'user_id', 'assignment_date', 'position')
-                      ->with('user:id,name');
+                    ->with('user:id,name');
                 if ($userId) {
                     $query->where('user_id', $userId);
                 }
@@ -295,7 +286,7 @@ class ScheduleService
 
         $transformedAssignments = [];
         foreach ($schedule->assignments as $assignment) {
-            $key = $assignment->shift_template_id . '_' . $assignment->assignment_date->format('Y-m-d') . '_' . $assignment->position;
+            $key = $assignment->shift_template_id.'_'.$assignment->assignment_date->format('Y-m-d').'_'.$assignment->position;
             $transformedAssignments[$key][] = [
                 'user_id' => $assignment->user->id,
                 'user_name' => $assignment->user->name,

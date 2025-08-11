@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Schedule;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use App\Services\ScheduleService;
-use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Helpers\BreadcrumbsGenerator;
+use App\Models\Schedule;
+use App\Services\ScheduleService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class WorkerScheduleController extends Controller
 {
@@ -44,7 +44,7 @@ class WorkerScheduleController extends Controller
      */
     public function show(Schedule $schedule, Request $request)
     {
-        if (!in_array($schedule->status, ['published', 'archived']) && !$schedule->trashed()) {
+        if (! in_array($schedule->status, ['published', 'archived']) && ! $schedule->trashed()) {
             abort(403, 'Ten grafik nie jest dostępny do podglądu.');
         }
 
@@ -70,7 +70,7 @@ class WorkerScheduleController extends Controller
      */
     public function downloadFullPdf(Schedule $schedule)
     {
-        if (!in_array($schedule->status, ['published', 'archived']) && !$schedule->trashed()) {
+        if (! in_array($schedule->status, ['published', 'archived']) && ! $schedule->trashed()) {
             abort(403, 'Ten grafik nie jest dostępny do pobrania.');
         }
 
@@ -78,7 +78,7 @@ class WorkerScheduleController extends Controller
 
         $pdf = Pdf::loadView('pdfs.schedule_full', $data);
 
-        $filename = 'grafik_pracy_' . $schedule->name . '_' . $schedule->period_start_date->format('Y-m') . '_caly.pdf';
+        $filename = 'grafik_pracy_'.$schedule->name.'_'.$schedule->period_start_date->format('Y-m').'_caly.pdf';
 
         return $pdf->download($filename);
     }
@@ -88,11 +88,11 @@ class WorkerScheduleController extends Controller
      */
     public function downloadMyPdf(Schedule $schedule)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             abort(403, 'Musisz być zalogowany, aby pobrać swój grafik.');
         }
 
-        if (!in_array($schedule->status, ['published', 'archived']) && !$schedule->trashed()) {
+        if (! in_array($schedule->status, ['published', 'archived']) && ! $schedule->trashed()) {
             abort(403, 'Ten grafik nie jest dostępny do pobrania.');
         }
 
@@ -102,7 +102,7 @@ class WorkerScheduleController extends Controller
         $pdf = Pdf::loadView('pdfs.schedule_my', $data);
 
         $user = Auth::user();
-        $filename = 'grafik_pracy_' . $schedule->name . '_' . $user->name . '_' . $schedule->period_start_date->format('Y-m') . '_moj.pdf';
+        $filename = 'grafik_pracy_'.$schedule->name.'_'.$user->name.'_'.$schedule->period_start_date->format('Y-m').'_moj.pdf';
 
         return $pdf->download($filename);
     }

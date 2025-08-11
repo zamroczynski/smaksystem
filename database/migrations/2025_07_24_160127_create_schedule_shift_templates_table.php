@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('schedule_shift_templates', function (Blueprint $table) {
-            $table->id(); 
+            $table->id();
             $table->foreignId('schedule_id')->constrained('schedules')->onDelete('cascade');
             $table->foreignId('shift_template_id')->constrained('shift_templates')->onDelete('cascade');
-            $table->timestamps(); 
+            $table->timestamps();
         });
     }
 

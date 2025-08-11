@@ -1,13 +1,13 @@
 <?php
 
+use App\Http\Controllers\PreferenceController;
+use App\Http\Controllers\RolesController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\ShiftTemplateController;
+use App\Http\Controllers\UsersController;
+use App\Http\Controllers\WorkerScheduleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\UsersController;
-use App\Http\Controllers\RolesController;
-use App\Http\Controllers\PreferenceController;
-use App\Http\Controllers\ShiftTemplateController;
-use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\WorkerScheduleController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -58,8 +58,8 @@ Route::middleware(['auth', 'can:Grafik Pracy'])->group(function () {
         Route::get('/{schedule}/pdf/full', [WorkerScheduleController::class, 'downloadFullPdf'])->name('pdf.full');
         Route::get('/{schedule}/pdf/my', [WorkerScheduleController::class, 'downloadMyPdf'])->name('pdf.my');
     });
-    
+
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

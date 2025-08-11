@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Carbon\Carbon;
-use Illuminate\Contracts\Validation\Validator;
-use Closure;
 
 class UpdateScheduleRequest extends FormRequest
 {
@@ -60,7 +58,6 @@ class UpdateScheduleRequest extends FormRequest
      * Configure the validator instance.
      *
      * @param  \Illuminate\Validation\Validator  $validator
-     * @return void
      */
     public function withValidator(Validator $validator): void
     {

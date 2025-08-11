@@ -2,20 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Preference;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
-use App\Http\Requests\StorePreferenceRequest;
 use App\Helpers\BreadcrumbsGenerator;
+use App\Http\Requests\StorePreferenceRequest;
+use App\Models\Preference;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class PreferenceController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
-     * @param Request $request
      */
     public function index(Request $request)
     {
@@ -43,6 +41,7 @@ class PreferenceController extends Controller
 
         $preferences->through(function ($preference) {
             $dateTo = Carbon::parse($preference->date_to);
+
             return [
                 'id' => $preference->id,
                 'description' => $preference->description,
@@ -75,6 +74,7 @@ class PreferenceController extends Controller
             ->add('Moje Preferencje', route('preferences.index'))
             ->add('Dodaj Preferencje', route('preferences.create'))
             ->get();
+
         return Inertia::render('Preferences/Create', [
             'breadcrumbs' => $breadcrumbs,
         ]);
@@ -157,6 +157,7 @@ class PreferenceController extends Controller
         }
 
         $preference->delete();
+
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie usunięta.');
     }
 
@@ -169,15 +170,16 @@ class PreferenceController extends Controller
         $user = Auth::user();
         $preference = $user->preferences()->withTrashed()->find($preference->id);
 
-        if (!$preference || $preference->user_id !== Auth::id()) {
+        if (! $preference || $preference->user_id !== Auth::id()) {
             return to_route('preferences.index')->with('error', 'Preferencja nie została znaleziona lub nie masz do niej uprawnień.');
         }
 
-        if (!$preference->trashed()) {
+        if (! $preference->trashed()) {
             return to_route('preferences.index')->with('error', 'Preferencja nie jest usunięta.');
         }
 
         $preference->restore();
+
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie przywrócona.');
     }
 }

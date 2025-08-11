@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Carbon\Carbon;
 
 class StoreScheduleRequest extends FormRequest
 {
@@ -39,11 +38,11 @@ class StoreScheduleRequest extends FormRequest
                 Rule::in(['draft', 'published', 'archived']),
             ],
             'selected_shift_templates' => [
-                'nullable', 
-                'array',  
+                'nullable',
+                'array',
             ],
-            'selected_shift_templates.*' => [ 
-                'integer',  
+            'selected_shift_templates.*' => [
+                'integer',
                 Rule::exists('shift_templates', 'id'),
             ],
         ];

@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Carbon\Carbon;
 
 class StoreShiftTemplateRequest extends FormRequest
 {
@@ -44,7 +44,7 @@ class StoreShiftTemplateRequest extends FormRequest
                 'min:0.01',
                 'max:24.0',
             ],
-            'required_staff_count' => [ 
+            'required_staff_count' => [
                 'required',
                 'integer',
                 'min:0',
@@ -59,12 +59,12 @@ class StoreShiftTemplateRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $timeFrom = $this->input('time_from');
-            $timeTo   = $this->input('time_to');
+            $timeTo = $this->input('time_to');
             $duration = (float) $this->input('duration_hours');
 
             try {
                 $start = Carbon::today()->setTimeFromTimeString($timeFrom);
-                $end   = Carbon::today()->setTimeFromTimeString($timeTo);
+                $end = Carbon::today()->setTimeFromTimeString($timeTo);
 
                 if ($end->lte($start)) {
                     $end->addDay();
@@ -75,14 +75,14 @@ class StoreShiftTemplateRequest extends FormRequest
                 if (abs($calculated - $duration) > 0.005) {
                     $validator->errors()->add(
                         'duration_hours',
-                        'Obliczony czas trwania (' . number_format($calculated, 2) . 'h) nie zgadza się z przesłanym czasem trwania (' . number_format($duration, 2) . 'h).'
+                        'Obliczony czas trwania ('.number_format($calculated, 2).'h) nie zgadza się z przesłanym czasem trwania ('.number_format($duration, 2).'h).'
                     );
                 }
 
             } catch (\Exception $e) {
-                $msg = 'Błąd parsowania czasu: ' . $e->getMessage();
+                $msg = 'Błąd parsowania czasu: '.$e->getMessage();
                 $validator->errors()->add('time_from', $msg);
-                $validator->errors()->add('time_to',   $msg);
+                $validator->errors()->add('time_to', $msg);
             }
         });
     }
@@ -107,7 +107,7 @@ class StoreShiftTemplateRequest extends FormRequest
             'duration_hours.numeric' => 'Czas trwania zmiany musi być liczbą.',
             'duration_hours.min' => 'Czas trwania zmiany musi być większy niż zero.',
             'duration_hours.max' => 'Czas trwania zmiany nie może przekraczać 24 godzin.',
-            'required_staff_count.required' => 'Wymagana liczba pracowników jest obowiązkowa.', 
+            'required_staff_count.required' => 'Wymagana liczba pracowników jest obowiązkowa.',
             'required_staff_count.integer' => 'Wymagana liczba pracowników musi być liczbą całkowitą.',
             'required_staff_count.min' => 'Wymagana liczba pracowników nie może być ujemna.',
         ];

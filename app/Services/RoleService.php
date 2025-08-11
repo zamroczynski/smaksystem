@@ -11,8 +11,8 @@ class RoleService
     /**
      * Tworzy nową rolę i przypisuje jej uprawnienia.
      *
-     * @param string $roleName Nazwa roli.
-     * @param array $permissionNames Tablica nazw uprawnień do przypisania.
+     * @param  string  $roleName  Nazwa roli.
+     * @param  array  $permissionNames  Tablica nazw uprawnień do przypisania.
      * @return Role Nowo utworzona rola.
      */
     public function createRoleWithPermissions(string $roleName, array $permissionNames): Role
@@ -22,7 +22,7 @@ class RoleService
             $role = Role::firstOrCreate(['name' => $roleName]);
 
             // Przypisz uprawnienia do roli
-            if (!empty($permissionNames)) {
+            if (! empty($permissionNames)) {
                 $role->givePermissionTo($permissionNames);
             }
 
@@ -33,9 +33,9 @@ class RoleService
     /**
      * Aktualizuje istniejącą rolę i synchronizuje jej uprawnienia.
      *
-     * @param Role $role Obiekt roli do zaktualizowania.
-     * @param string $roleName Nowa nazwa roli.
-     * @param array $permissionNames Tablica nazw uprawnień do przypisania.
+     * @param  Role  $role  Obiekt roli do zaktualizowania.
+     * @param  string  $roleName  Nowa nazwa roli.
+     * @param  array  $permissionNames  Tablica nazw uprawnień do przypisania.
      * @return Role Zaktualizowana rola.
      */
     public function updateRole(Role $role, string $roleName, array $permissionNames): Role
@@ -56,7 +56,7 @@ class RoleService
     /**
      * Miękko usuwa rolę i odłącza ją od wszystkich użytkowników.
      *
-     * @param Role $role Obiekt roli do usunięcia.
+     * @param  Role  $role  Obiekt roli do usunięcia.
      * @return bool True, jeśli usunięcie się powiodło.
      */
     public function destroyRole(Role $role): bool
@@ -71,15 +71,13 @@ class RoleService
                     $user->removeRole($role->name);
                 }
             }
+
             return $role->delete();
         });
     }
 
     /**
      * Sprawdza, czy rola jest przypisana do jakichkolwiek użytkowników.
-     *
-     * @param Role $role
-     * @return bool
      */
     public function isRoleAssignedToUsers(Role $role): bool
     {
@@ -89,7 +87,7 @@ class RoleService
     /**
      * Przywraca miękko usuniętą rolę.
      *
-     * @param int $roleId ID roli do przywrócenia.
+     * @param  int  $roleId  ID roli do przywrócenia.
      * @return Role|null Przywrócona rola lub null, jeśli nie znaleziono.
      */
     public function restoreRole(int $roleId): ?Role
