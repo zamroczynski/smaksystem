@@ -27,15 +27,41 @@ class UsersController extends Controller
     public function index(Request $request)
     {
         $showDisabled = $request->boolean('show_disabled');
+        $filter = $request->input('filter');
+        $sort = $request->input('sort', 'id');
+        $direction = $request->input('direction', 'asc');
 
-        $usersQuery = User::orderBy('id');
+        if (! in_array($sort, ['id', 'name', 'email', 'roles', 'created_at', 'deleted_at'])) {
+            $sort = 'id';
+        }
+
+        if (! in_array($direction, ['asc', 'desc'])) {
+            $direction = 'asc';
+        }
+
+        $usersQuery = User::query();
+
+        $usersQuery->orderBy($sort, $direction);
 
         if ($showDisabled) {
             $usersQuery->onlyTrashed();
         }
 
+        if ($filter) {
+            $usersQuery->where(function ($query) use ($filter) {
+                $query->where('name', 'like', '%' . $filter . '%')
+                      ->orWhere('email', 'like', '%' . $filter . '%')
+                      ->orWhereHas('roles', function ($q) use ($filter) {
+                          $q->where('name', 'like', '%' . $filter . '%');
+                      });
+            });
+        }
+
         $users = $usersQuery->paginate(10)->appends([
             'show_disabled' => $showDisabled,
+            'filter' => $filter,
+            'sort' => $sort,
+            'direction' => $direction,
         ]); 
 
         $users->through(function ($user) {
@@ -60,6 +86,9 @@ class UsersController extends Controller
             'flash' => session('flash'),
             'show_disabled' => $showDisabled,
             'breadcrumbs' => $breadcrumbs,
+            'filter' => $filter,
+            'sort_by' => $sort,
+            'sort_direction' => $direction,
         ]);
     }
 

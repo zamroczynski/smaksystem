@@ -4,10 +4,8 @@ import { type BreadcrumbItem } from '@/types';
 import { type User } from '@/types/models';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
-import Pagination from '@/components/Pagination.vue';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
@@ -21,8 +19,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref, watch } from 'vue';
+import { ref, watch, h } from 'vue';
 
+import DataTable from '@/components/DataTable.vue';
+import { ColumnDef } from '@tanstack/vue-table';
 
 
 const props = defineProps<{
@@ -54,7 +54,17 @@ const props = defineProps<{
     };
     show_disabled: boolean;
     breadcrumbs: BreadcrumbItem[];
+    filter: string | null;
+    sort_by: string | null;
+    sort_direction: 'asc' | 'desc' | null;
 }>();
+
+const currentPage = ref(props.users.current_page);
+const currentGlobalFilter = ref(props.filter);
+const showDisabledUsers = ref(props.show_disabled);
+
+const currentSortBy = ref(props.sort_by || 'id');
+const currentSortDirection = ref(props.sort_direction || 'asc');
 
 const form = useForm({});
 const isAlertDialogOpen = ref(false);
@@ -81,11 +91,7 @@ const deleteUserConfirmed = () => {
                 isAlertDialogOpen.value = false; 
                 userToDeleteId.value = null; 
                 userToDeleteName.value = '';
-                router.get(route('users.index', { show_disabled: showDisabledUsers.value }), {}, {
-                    preserveState: true,
-                    preserveScroll: true,
-                    only: ['users', 'show_disabled'],
-                }); 
+                fetchTableData();
             },
             onError: (errors) => {
                 toast.error(props.flash?.error || 'Wystąpił nieoczekiwany błąd podczas wyłączania użytkownika.');
@@ -97,7 +103,6 @@ const deleteUserConfirmed = () => {
     }
 };
 
-const showDisabledUsers = ref(props.show_disabled);
 watch(showDisabledUsers, (newValue) => {
     router.get(route('users.index', { show_disabled: newValue }), {}, {
         preserveState: true,
@@ -109,17 +114,133 @@ const restoreUser = (userId: number) => {
     router.post(route('users.restore', userId), {}, {
         onSuccess: () => {
             toast.success('Użytkownik został pomyślnie przywrócony.');
-            router.get(route('users.index', { show_disabled: showDisabledUsers.value }), {}, {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['users', 'show_disabled'],
-            });
+            fetchTableData();
         },
         onError: () => {
             toast.error('Wystąpił błąd podczas przywracania użytkownika.');
         },
     });
 };
+
+const fetchTableData = () => {
+    router.get(
+        route('users.index'),
+        {
+            page: currentPage.value,
+            filter: currentGlobalFilter.value,
+            show_disabled: showDisabledUsers.value,
+            sort: props.sort_by,
+            direction: props.sort_direction,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['users', 'show_disabled', 'sort_by', 'sort_direction', 'filter'],
+        }
+    );
+};
+
+const handlePageUpdate = (newPage: number) => {
+    currentPage.value = newPage;
+    fetchTableData();
+};
+
+const handleFilterUpdate = (newFilter: string) => {
+    currentGlobalFilter.value = newFilter;
+    currentPage.value = 1;
+    fetchTableData();
+};
+
+const handleSortUpdate = (sortData: { column: string, direction: string }) => {
+    router.get(
+        route('users.index'),
+        {
+            page: 1,
+            filter: currentGlobalFilter.value,
+            show_disabled: showDisabledUsers.value,
+            sort: sortData.column,
+            direction: sortData.direction,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['users', 'show_disabled', 'sort_by', 'sort_direction', 'filter'],
+        }
+    );
+};
+
+const columns: ColumnDef<typeof props.users.data[number]>[] = [
+    {
+        accessorKey: 'id',
+        header: 'ID',
+        enableSorting: true,
+        enableGlobalFilter: true,
+    },
+    {
+        accessorKey: 'name',
+        header: 'Nazwa',
+        cell: ({ row }) => h('div', { class: 'capitalize' }, row.getValue('name')),
+        enableSorting: true,
+        enableGlobalFilter: true,
+    },
+    {
+        accessorKey: 'email',
+        header: 'Email',
+        cell: ({ row }) => h('div', { class: 'lowercase' }, row.getValue('email')),
+        enableSorting: true,
+        enableGlobalFilter: true,
+    },
+    {
+        accessorKey: 'roles',
+        header: 'Role',
+        cell: ({ row }) => {
+            const roles = row.original.roles;
+            return h('span', roles && roles.length > 0 ? roles.join(', ') : 'Brak');
+        },
+        enableSorting: false,
+        enableGlobalFilter: true,
+        filterFn: (row, columnId, filterValue) => {
+            const roles = row.original.roles;
+            return roles.some(role => role.toLowerCase().includes(filterValue.toLowerCase()));
+        }
+    },
+    {
+        accessorKey: 'deleted_at',
+        header: 'Status',
+        cell: ({ row }) => {
+            const status = row.original.deleted_at === null ? 'Aktywny' : 'Wyłączony';
+            const colorClass = row.original.deleted_at === null ? 'text-green-600' : 'text-red-600';
+            return h('span', { class: colorClass + ' font-medium' }, status);
+        },
+        enableSorting: false,
+        enableGlobalFilter: true,
+    },
+    {
+        id: 'actions',
+        header: 'Akcje',
+        enableSorting: false,
+        enableGlobalFilter: false,
+        cell: ({ row }) => {
+            const user = row.original;
+            return h('div', { class: 'flex justify-end space-x-2 text-right' }, [
+                user.deleted_at === null
+                    ? h(Link, { href: route('users.edit', user.id) }, () => h(Button, { variant: 'outline', size: 'sm' }, { default: () => 'Edytuj' }))
+                    : null,
+                user.deleted_at !== null
+                    ? h(Button, { variant: 'outline', size: 'sm', onClick: () => restoreUser(user.id) }, { default: () => 'Przywróć' })
+                    : null,
+                user.deleted_at === null
+                    ? h(Button, {
+                          variant: 'destructive',
+                          size: 'sm',
+                          onClick: () => confirmDelete(user.id, user.name),
+                          disabled: user.id === (props.flash?.auth?.user?.id || undefined) || user.roles.includes('admin'),
+                      }, { default: () => 'Wyłącz' })
+                    : null,
+            ]);
+        },
+    },
+];
 </script>
 
 <template>
@@ -139,63 +260,18 @@ const restoreUser = (userId: number) => {
                             <Label for="show-disabled-users">Pokaż tylko wyłączonych użytkowników</Label>
                     </div>
                 </div>
-                <div class="relative w-full overflow-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-[100px]">ID</TableHead>
-                                <TableHead>Nazwa</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead class="text-right">Akcje</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="user in props.users.data" :key="user.id">
-                                <TableCell class="font-medium">{{ user.id }}</TableCell>
-                                <TableCell>{{ user.name }}</TableCell>
-                                <TableCell>{{ user.email }}</TableCell>
-                                <TableCell>
-                                    <span v-if="user.roles && user.roles.length > 0">
-                                        {{ user.roles.join(', ') }}
-                                    </span>
-                                    <span v-else class="text-gray-500">Brak</span>
-                                </TableCell>
-                                <TableCell>
-                                    <span v-if="user.deleted_at === null" class="text-green-600 font-medium">Aktywny</span>
-                                    <span v-else class="text-red-600 font-medium">Wyłączony</span>
-                                </TableCell>
-                                <TableCell class="text-right flex justify-end space-x-2">
-                                    <Button as-child variant="outline" size="sm" v-if="user.deleted_at === null">
-                                        <Link :href="route('users.edit', user.id)">Edytuj</Link>
-                                    </Button>
-                                    <Button
-                                        v-if="user.deleted_at !== null"
-                                        variant="outline"
-                                        size="sm"
-                                        @click="restoreUser(user.id)"
-                                    >
-                                        Przywróć
-                                    </Button>
-                                    <Button
-                                        v-if="user.deleted_at === null"
-                                        variant="destructive"
-                                        size="sm"
-                                        @click="confirmDelete(user.id, user.name)"
-                                        :disabled="user.id === $page.props.auth.user.id || user.roles.includes('admin')" >
-                                        Wyłącz
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow v-if="props.users.data.length === 0">
-                                <TableCell colspan="6" class="text-center text-gray-500">Brak użytkowników do wyświetlenia.</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-
-                <Pagination :links="props.users.links" class="mt-6" />
+                <DataTable
+                    :columns="columns"
+                    :data="props.users.data"
+                    :current-page="props.users.current_page"
+                    :last-page="props.users.last_page"
+                    :total="props.users.total"
+                    :per-page="props.users.per_page"
+                    @update:page="handlePageUpdate"
+                    @update:filter="handleFilterUpdate"
+                    @update:sort="handleSortUpdate"
+                    :sort-by="props.sort_by" :sort-direction="props.sort_direction"
+                />
 
                 <div class="mt-6">
                     <Link :href="route('users.create')">

@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $user->assignRole('Kierownik');
-        User::factory(20)->employee()->create();
+        User::factory(100)->employee()->create();
 
     }
 }
