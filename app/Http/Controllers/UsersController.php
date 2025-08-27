@@ -26,70 +26,22 @@ class UsersController extends Controller
      */
     public function index(Request $request)
     {
-        $showDisabled = $request->boolean('show_disabled');
-        $filter = $request->input('filter');
-        $sort = $request->input('sort', 'id');
-        $direction = $request->input('direction', 'asc');
-
-        if (! in_array($sort, ['id', 'name', 'email', 'roles', 'created_at', 'deleted_at'])) {
-            $sort = 'id';
-        }
-
-        if (! in_array($direction, ['asc', 'desc'])) {
-            $direction = 'asc';
-        }
-
-        $usersQuery = User::query();
-
-        $usersQuery->orderBy($sort, $direction);
-
-        if ($showDisabled) {
-            $usersQuery->onlyTrashed();
-        }
-
-        if ($filter) {
-            $usersQuery->where(function ($query) use ($filter) {
-                $query->where('name', 'like', '%'.$filter.'%')
-                    ->orWhere('email', 'like', '%'.$filter.'%')
-                    ->orWhereHas('roles', function ($q) use ($filter) {
-                        $q->where('name', 'like', '%'.$filter.'%');
-                    });
-            });
-        }
-
-        $users = $usersQuery->paginate(10)->appends([
-            'show_disabled' => $showDisabled,
-            'filter' => $filter,
-            'sort' => $sort,
-            'direction' => $direction,
-        ]);
-
-        $users->through(function ($user) {
-            $user->load('roles');
-
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'roles' => $user->roles->pluck('name')->toArray(),
-                'created_at' => $user->created_at ? $user->created_at->format('Y-m-d H:i') : null,
-                'updated_at' => $user->updated_at ? $user->updated_at->format('Y-m-d H:i') : null,
-                'deleted_at' => $user->deleted_at,
-            ];
-        });
-
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Zarządzanie Pracownikami', route('users.index'))
-            ->get();
+        $options = [
+            'show_disabled' => $request->boolean('show_disabled'),
+            'filter' => $request->input('filter'),
+            'sort' => $request->input('sort', 'id'),
+            'direction' => $request->input('direction', 'asc'),
+        ];
+        $users = $this->userService->getPaginatedUsers($options);
 
         return Inertia::render('Users/Index', [
             'users' => $users,
             'flash' => session('flash'),
-            'show_disabled' => $showDisabled,
-            'breadcrumbs' => $breadcrumbs,
-            'filter' => $filter,
-            'sort_by' => $sort,
-            'sort_direction' => $direction,
+            'show_disabled' => $request->boolean('show_disabled'),
+            'breadcrumbs' => $this->getUsersBreadcrumbs(),
+            'filter' => $request->input('filter'),
+            'sort_by' => $request->input('sort', 'id'),
+            'sort_direction' => $request->input('direction', 'asc'),
         ]);
     }
 
@@ -98,15 +50,9 @@ class UsersController extends Controller
      */
     public function create()
     {
-        $roles = Role::all(['id', 'name']);
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Zarządzanie Pracownikami', route('users.index'))
-            ->add('Dodaj pracownika', route('users.create'))
-            ->get();
-
         return Inertia::render('Users/Create', [
-            'roles' => $roles,
-            'breadcrumbs' => $breadcrumbs,
+            'roles' => Role::all(['id', 'name']),
+            'breadcrumbs' => $this->getUsersBreadcrumbs('Dodaj pracownika', route('users.create')),
         ]);
     }
 
@@ -127,12 +73,6 @@ class UsersController extends Controller
      */
     public function edit(User $user)
     {
-        $roles = Role::all(['id', 'name']);
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Zarządzanie Pracownikami', route('users.index'))
-            ->add('Edytuj pracownika', route('users.edit', $user))
-            ->get();
-
         return Inertia::render('Users/Edit', [
             'user' => [
                 'id' => $user->id,
@@ -141,8 +81,8 @@ class UsersController extends Controller
                 'email' => $user->email,
                 'current_role' => $user->getRoleNames()->first(),
             ],
-            'roles' => $roles,
-            'breadcrumbs' => $breadcrumbs,
+            'roles' => Role::all(['id', 'name']),
+            'breadcrumbs' => $this->getUsersBreadcrumbs('Edytuj pracownika', route('users.edit', $user)),
         ]);
     }
 
@@ -197,5 +137,24 @@ class UsersController extends Controller
         }
 
         return to_route('users.index')->with('error', 'Nie udało się przywrócić użytkownika.');
+    }
+
+    /**
+     * Generuje breadcrumbs dla zarządzania użytkownikami.
+     *
+     * @param  string|null  $pageTitle
+     * @param  string|null  $pageRoute
+     * @return array
+     */
+    protected function getUsersBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
+    {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Pracownikami', route('users.index'));
+
+        if ($pageTitle && $pageRoute) {
+            $breadcrumbs->add($pageTitle, $pageRoute);
+        }
+
+        return $breadcrumbs->get();
     }
 }
