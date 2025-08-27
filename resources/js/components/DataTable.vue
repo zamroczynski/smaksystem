@@ -28,10 +28,11 @@ interface DataTableProps<TData, TValue> {
     perPage: number;
     sortBy: string | null;
     sortDirection: 'asc' | 'desc' | null;
+    filter: string | null;
 }
 
 const props = defineProps<DataTableProps<TData, TValue>>();
-const globalFilter = ref('');
+const globalFilter = ref(props.filter || '');
 
 const table = useVueTable({
     get data() { return props.data; },
@@ -61,9 +62,15 @@ const table = useVueTable({
 
 const emit = defineEmits(['update:page', 'update:filter', 'update:sort']);
 
+let timeoutId: ReturnType<typeof setTimeout> | null = null;
 watch(globalFilter, (newFilter) => {
-    emit('update:page', 1);
-    emit('update:filter', newFilter);
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+        emit('update:page', 1);
+        emit('update:filter', newFilter);
+    }, 300);
 });
 
 const displayedPages = computed(() => {
