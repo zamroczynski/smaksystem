@@ -10,14 +10,17 @@ import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { type DateRange } from 'reka-ui'
 
-import { type Ref, ref, watch } from 'vue';
+import { type Ref, ref, watch, defineAsyncComponent } from 'vue';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { DateFormatter } from '@internationalized/date';
-import { RangeCalendar } from '@/components/ui/range-calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone } from "@internationalized/date";
+
+const RangeCalendar = defineAsyncComponent(() => 
+    import('@/components/ui/range-calendar')
+);
 
 const props = defineProps<{
     breadcrumbs: BreadcrumbItem[]

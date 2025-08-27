@@ -18,11 +18,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref, watch, h } from 'vue';
+import { ref, watch, h, defineAsyncComponent } from 'vue';
 
-import DataTable from '@/components/DataTable.vue';
 import { ColumnDef } from '@tanstack/vue-table';
 
+const DataTable = defineAsyncComponent(() =>
+  import('@/components/DataTable.vue')
+);
 
 const props = defineProps<{
     users: {
