@@ -3,11 +3,11 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 
 class UserService
 {
@@ -23,7 +23,7 @@ class UserService
             $user = User::create([
                 'name' => $data['name'],
                 'login' => $data['login'],
-                'email' => $data['email'] ?? null, 
+                'email' => $data['email'] ?? null,
                 'password' => Hash::make($data['password']),
             ]);
 
@@ -71,7 +71,6 @@ class UserService
      * Pobiera paginowaną listę użytkowników z filtrowaniem i sortowaniem.
      *
      * @param  array  $options  Opcje filtrowania i sortowania.
-     * @return LengthAwarePaginator
      */
     public function getPaginatedUsers(array $options): LengthAwarePaginator
     {
@@ -125,10 +124,6 @@ class UserService
 
     /**
      * Stosuje filtry wyszukiwania do zapytania.
-     *
-     * @param  Builder  $query
-     * @param  string|null  $filter
-     * @return Builder
      */
     protected function applyFilters(Builder $query, ?string $filter): Builder
     {
@@ -150,11 +145,6 @@ class UserService
 
     /**
      * Stosuje sortowanie do zapytania.
-     *
-     * @param  Builder  $query
-     * @param  string  $sort
-     * @param  string  $direction
-     * @return Builder
      */
     protected function applySorting(Builder $query, string $sort, string $direction): Builder
     {
@@ -162,9 +152,9 @@ class UserService
         if ($sort === 'roles') {
             Log::info('Sortowanie po rolach: Wykonywany JOIN.');
             $query->select('users.*')
-                  ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
-                  ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                  ->orderBy('roles.name', $direction);
+                ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->orderBy('roles.name', $direction);
         } else {
             Log::info('Sortowanie po innej kolumnie niż role.');
             $query->orderBy('users.'.$sort, $direction);

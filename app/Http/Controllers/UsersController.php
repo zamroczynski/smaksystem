@@ -141,10 +141,6 @@ class UsersController extends Controller
 
     /**
      * Generuje breadcrumbs dla zarządzania użytkownikami.
-     *
-     * @param  string|null  $pageTitle
-     * @param  string|null  $pageRoute
-     * @return array
      */
     protected function getUsersBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
     {
