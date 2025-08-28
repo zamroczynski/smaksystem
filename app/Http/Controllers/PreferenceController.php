@@ -136,12 +136,13 @@ class PreferenceController extends Controller
         }
 
         $validatedData = $request->validated();
+        $availabilityBoolean = $validatedData['availability'] === 'available';
 
         $preference->update([
             'date_from' => $validatedData['date_from'],
             'date_to' => $validatedData['date_to'],
             'description' => $validatedData['description'] ?? null,
-            'availability' => $validatedData['availability'],
+            'availability' => $availabilityBoolean,
         ]);
 
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie zaktualizowana.');

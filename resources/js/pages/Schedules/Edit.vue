@@ -120,7 +120,7 @@ const getAssignmentError = (shiftTemplateId: number, date: string, position: num
             const errorIndex = parseInt(errorKey.split('.')[1]);
 
             if (!isNaN(errorIndex) && assignmentsAsArray[errorIndex] && assignmentsAsArray[errorIndex].compositeKey === compositeKey) {
-                 return form.errors[errorKey as keyof typeof form.errors];
+                return form.errors[errorKey as keyof typeof form.errors] ?? null;
             }
         }
     }
@@ -266,7 +266,7 @@ const submit = () => {
                                                         <Select
                                                             v-else
                                                             :model-value="getAssignedUser(shiftTemplate.id, day.date, pos)"
-                                                            @update:model-value="val => setAssignment(shiftTemplate.id, day.date, pos, val)"
+                                                            @update:model-value="val => setAssignment(shiftTemplate.id, day.date, pos, val === null ? null : String(val))"
                                                             @update:open="open => !open && deactivateEdit()"
                                                             :default-open="true"
                                                         >

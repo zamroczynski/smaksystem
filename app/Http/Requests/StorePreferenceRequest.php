@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePreferenceRequest extends FormRequest
 {
@@ -25,7 +26,7 @@ class StorePreferenceRequest extends FormRequest
             'date_from' => ['required', 'date', 'after_or_equal:today'],
             'date_to' => ['required', 'date', 'after_or_equal:date_from'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'availability' => ['required', 'boolean'],
+            'availability' => ['required', 'string', Rule::in(['available', 'unavailable'])],
         ];
     }
 
@@ -46,7 +47,6 @@ class StorePreferenceRequest extends FormRequest
             'description.string' => 'Opis musi być tekstem.',
             'description.max' => 'Opis nie może przekraczać :max znaków.',
             'availability.required' => 'Status dostępności jest wymagany.',
-            'availability.boolean' => 'Status dostępności musi być wartością prawda/fałsz.',
         ];
     }
 }
