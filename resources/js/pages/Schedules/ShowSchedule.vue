@@ -1,58 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { type BreadcrumbItem } from '@/types';
+import { type ScheduleShowProps } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { computed } from 'vue';
 
-interface UserData {
-    id: number;
-    name: string;
-}
-
-interface ShiftTemplateData {
-    id: number;
-    name: string;
-    time_from: string;
-    time_to: string;
-    required_staff_count: number;
-}
-
-interface AssignmentData {
-    user_id: number;
-    user_name: string;
-}
-
-interface DayData {
-    date: string;
-    day_number: number;
-    day_name_short: string;
-    is_sunday: boolean;
-    is_saturday: boolean;
-    is_holiday: boolean;
-}
-
-interface ScheduleDetails {
-    schedule: {
-        id: number;
-        name: string;
-        period_start_date: string;
-        status: 'published' | 'archived';
-    };
-    shiftTemplates: ShiftTemplateData[];
-    users: UserData[];
-    assignments: Record<string, AssignmentData[]>;
-    monthDays: DayData[];
-}
-
-interface Props {
-    scheduleData: ScheduleDetails;
-    breadcrumbs: BreadcrumbItem[];
-}
-
-const props = defineProps<Props>();
+const props = defineProps<ScheduleShowProps>();
 
 const authUser = computed(() => usePage().props.auth.user);
 

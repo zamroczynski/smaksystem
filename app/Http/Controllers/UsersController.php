@@ -79,7 +79,7 @@ class UsersController extends Controller
                 'name' => $user->name,
                 'login' => $user->login,
                 'email' => $user->email,
-                'current_role' => $user->getRoleNames()->first(),
+                'role' => $user->getRoleNames()->first(),
             ],
             'roles' => Role::all(['id', 'name']),
             'breadcrumbs' => $this->getUsersBreadcrumbs('Edytuj pracownika', route('users.edit', $user)),

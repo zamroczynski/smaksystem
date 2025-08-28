@@ -1,41 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type ScheduleViewProps } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'vue-sonner';
 import Pagination from '@/components/Pagination.vue';
 
-interface Schedule {
-    id: number;
-    name: string;
-    period_start_date: string;
-    status: 'published' | 'archived';
-}
-
-interface SchedulesPaginated {
-    data: Schedule[];
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-    current_page: number;
-    last_page: number;
-    from: number;
-    to: number;
-    total: number;
-}
-
-const props = defineProps<{
-    schedules: SchedulesPaginated;
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    breadcrumbs: BreadcrumbItem[];
-}>();
+const props = defineProps<ScheduleViewProps>();
 
 import { watch } from 'vue';
 watch(

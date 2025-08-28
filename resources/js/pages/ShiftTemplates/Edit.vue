@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type ShiftTemplateEditProps } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -10,19 +10,7 @@ import { toast } from 'vue-sonner';
 import { watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
-interface ShiftTemplateProps {
-    id: number;
-    name: string;
-    time_from: string;
-    time_to: string;
-    duration_hours: number;
-    required_staff_count: number;
-}
-
-const props = defineProps<{
-    shiftTemplate: ShiftTemplateProps;
-    breadcrumbs: BreadcrumbItem[];
-}>();
+const props = defineProps<ShiftTemplateEditProps>();
 
 const form = useForm({
     name: props.shiftTemplate.name,

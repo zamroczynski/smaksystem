@@ -28,7 +28,7 @@ interface DataTableProps<TData, TValue> {
     perPage: number;
     sortBy: string | null;
     sortDirection: 'asc' | 'desc' | null;
-    filter: string | null;
+    filter?: string | null;
 }
 
 const props = defineProps<DataTableProps<TData, TValue>>();

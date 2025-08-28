@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
-import { type Permission } from '@/types/models';
+import { type RoleEditProps } from '@/types';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 
-const props = defineProps<{
-    role: { id: number; name: string; };
-    allPermissions: Permission[];
-    rolePermissions: string[];
-    breadcrumbs: BreadcrumbItem[];
-}>();
+const props = defineProps<RoleEditProps>();
 
 const form = useForm({
     name: props.role.name,

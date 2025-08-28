@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -23,6 +22,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { type ScheduleCreateProps } from '@/types';
 
 const Calendar = defineAsyncComponent(() =>
   import('@/components/ui/calendar/Calendar.vue')
@@ -32,18 +32,7 @@ const Popover = defineAsyncComponent(() =>
   import('@/components/ui/popover/Popover.vue')
 );
 
-interface ShiftTemplate {
-    id: number;
-    name: string;
-}
-
-interface CreateProps {
-    activeShiftTemplates: ShiftTemplate[];
-    errors: Record<string, string>;
-    breadcrumbs: BreadcrumbItem[];
-}
-
-const props = defineProps<CreateProps>();
+const props = defineProps<ScheduleCreateProps>();
 
 const form = useForm({
     name: '',

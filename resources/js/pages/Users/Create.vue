@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type UserCreateProps } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,7 @@ import { toast } from 'vue-sonner';
 
 import { EyeIcon, EyeOffIcon } from 'lucide-vue-next';
 
-const props = defineProps<{
-    roles: Array<{ id: number; name: string }>; 
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    breadcrumbs: BreadcrumbItem[];
-}>();
+const props = defineProps<UserCreateProps>();
 
 const form = useForm({
     name: '',

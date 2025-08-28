@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type ShiftTemplateIndexProps } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -20,41 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ref, watch } from 'vue';
 
-interface ShiftTemplate {
-    id: number;
-    name: string;
-    time_from: string; 
-    time_to: string;  
-    duration_hours: number;
-    required_staff_count: number; 
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null; 
-}
-
-interface ShiftTemplatesPaginated {
-    data: ShiftTemplate[];
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-    current_page: number;
-    last_page: number;
-    from: number;
-    to: number;
-    total: number;
-}
-
-const props = defineProps<{
-    shiftTemplates: ShiftTemplatesPaginated;
-    show_deleted: boolean;
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    breadcrumbs: BreadcrumbItem[]
-}>();
+const props = defineProps<ShiftTemplateIndexProps>();
 
 watch(
     () => props.flash,

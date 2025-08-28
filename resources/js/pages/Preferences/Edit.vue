@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type PreferenceEditProps } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -21,18 +21,7 @@ const RangeCalendar = defineAsyncComponent(() =>
     import('@/components/ui/range-calendar')
 );
 
-interface Preference {
-    id: number;
-    date_from: string;
-    date_to: string;
-    description: string | undefined;
-    availability: boolean;
-}
-
-const props = defineProps<{
-    preference: Preference;
-    breadcrumbs: BreadcrumbItem[]
-}>();
+const props = defineProps<PreferenceEditProps>();
 
 const stringToCalendarDate = (dateString: string): CalendarDate => {
     const [year, month, day] = dateString.split('-').map(Number);

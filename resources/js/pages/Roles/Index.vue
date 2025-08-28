@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type RoleIndexProps } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 
 import { Button } from '@/components/ui/button';
@@ -22,33 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ref, watch } from 'vue';
 
-const props = defineProps<{
-    roles: {
-        data: Array<{
-            id: number;
-            name: string;
-            deleted_at: string | null;
-            is_assigned_to_users?: boolean;
-        }>;
-        links: Array<{
-            url: string | null;
-            label: string;
-            active: boolean;
-        }>;
-        current_page: number;
-        from: number;
-        last_page: number;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    show_disabled: boolean;
-    breadcrumbs: BreadcrumbItem[]
-}>();
+const props = defineProps<RoleIndexProps>();
 
 const form = useForm({});
 
