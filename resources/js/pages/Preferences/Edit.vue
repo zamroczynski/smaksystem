@@ -5,21 +5,22 @@ import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'vue-sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { RangeCalendar } from '@/components/ui/range-calendar';
+import { toast } from 'vue-sonner';
 import { type DateRange } from 'reka-ui'
-
 import { type Ref, ref, watch, defineAsyncComponent } from 'vue';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { DateFormatter } from '@internationalized/date';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone } from "@internationalized/date";
 
-const RangeCalendar = defineAsyncComponent(() => 
-    import('@/components/ui/range-calendar')
-);
+// const RangeCalendar = defineAsyncComponent(() => 
+//     import('@/components/ui/range-calendar')
+// );
 
 const props = defineProps<PreferenceEditProps>();
 
@@ -37,7 +38,7 @@ const form = useForm({
     date_from: null as string | null,
     date_to: null as string | null,
     description: props.preference.description,
-    availability: props.preference.availability,
+    availability: props.preference.availability ? 'available' : 'unavailable',
 });
 
 const dateRange = ref({
@@ -95,11 +96,11 @@ const submit = () => {
                             <Label>Dyspozycja na wybrane dni <span class="text-red-500">*</span></Label>
                             <RadioGroup v-model="form.availability" class="flex gap-4 mt-2">
                                 <div class="flex items-center space-x-2">
-                                    <RadioGroupItem id="availability-edit-true" :value="true" />
+                                    <RadioGroupItem id="availability-edit-true" value="available" />
                                     <Label for="availability-edit-true">Chcę przyjść do pracy</Label>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <RadioGroupItem id="availability-edit-false" :value="false" />
+                                    <RadioGroupItem id="availability-edit-false" value="unavailable" />
                                     <Label for="availability-edit-false">Nie mogę przyjść do pracy</Label>
                                 </div>
                             </RadioGroup>
