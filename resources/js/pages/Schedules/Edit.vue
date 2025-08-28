@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,47 +15,9 @@ import {
     TableRow
 } from '@/components/ui/table';
 import { cn } from '@/utils';
+import { type ScheduleEditProps } from '@/types';
 
-interface UserPreferences {
-    [date: string]: boolean;
-}
-
-interface EditProps {
-    schedule: {
-        id: number;
-        name: string;
-        period_start_date: string;
-        status: string;
-    };
-    assignedShiftTemplates: {
-        id: number;
-        name: string;
-        time_from: string;
-        time_to: string;
-        duration_hours: number;
-        required_staff_count: number;
-    }[];
-    users: {
-        id: number;
-        name: string;
-    }[];
-    initialAssignments: Record<string, number | null>;
-    monthDays: {
-        date: string;
-        day_number: number;
-        is_sunday: boolean;
-        is_saturday: boolean;
-        is_holiday: boolean;
-    }[];
-    preferences: Record<string, UserPreferences>;
-    breadcrumbs: BreadcrumbItem[];
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-}
-
-const props = defineProps<EditProps>();
+const props = defineProps<ScheduleEditProps>();
 
 watch(
     () => props.flash,

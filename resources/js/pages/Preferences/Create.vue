@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type PreferenceCreateProps } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,20 +8,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { type DateRange } from 'reka-ui'
+import { type DateRange } from 'reka-ui';
+import { RangeCalendar } from '@/components/ui/range-calendar'; 
 
 import { type Ref, ref, watch } from 'vue';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { DateFormatter } from '@internationalized/date';
-import { RangeCalendar } from '@/components/ui/range-calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone } from "@internationalized/date";
 
-const props = defineProps<{
-    breadcrumbs: BreadcrumbItem[]
-}>();
+const props = defineProps<PreferenceCreateProps>();
 
 const getTodayAsCalendarDate = (): CalendarDate => {
     const today = new Date();
@@ -40,7 +38,6 @@ form.transform((data) => ({
     availability: data.availability === 'true',
 }));
 
-// Reaktywny stan dla wybranego zakresu dat w kalendarzu
 const dateRange = ref({
     start: getTodayAsCalendarDate(),
     end: getTodayAsCalendarDate().add({ days: 1 }),

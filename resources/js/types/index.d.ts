@@ -2,6 +2,13 @@ import type { LucideIcon } from 'lucide-vue-next';
 import type { Config } from 'ziggy-js';
 import { PageProps as InertiaPageProps } from '@inertiajs/core';
 
+export * from './user';
+export * from './role';
+export * from './schedule';
+export * from './preference';
+export * from './shift-template';
+export * from './pagination';
+
 export interface Auth {
     user: User;
 }
@@ -52,4 +59,30 @@ declare module '@inertiajs/core' {
             error?: string;
         };
     }
+}
+
+export interface Links {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface Flash {
+    success?: string;
+    error?: string;
+}
+
+export interface PaginatedData {
+    links: Links[];
+    current_page: number;
+    from: number;
+    last_page: number;
+    per_page: number;
+    to: number;
+    total: number;
+}
+
+export interface PageProps {
+    flash?: Flash;
+    breadcrumbs: BreadcrumbItem[];
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type PreferenceEditProps } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,27 +9,19 @@ import { toast } from 'vue-sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { type DateRange } from 'reka-ui'
 
-import { type Ref, ref, watch } from 'vue';
+import { type Ref, ref, watch, defineAsyncComponent } from 'vue';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { DateFormatter } from '@internationalized/date';
-import { RangeCalendar } from '@/components/ui/range-calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone } from "@internationalized/date";
 
-interface Preference {
-    id: number;
-    date_from: string;
-    date_to: string;
-    description: string | undefined;
-    availability: boolean;
-}
+const RangeCalendar = defineAsyncComponent(() => 
+    import('@/components/ui/range-calendar')
+);
 
-const props = defineProps<{
-    preference: Preference;
-    breadcrumbs: BreadcrumbItem[]
-}>();
+const props = defineProps<PreferenceEditProps>();
 
 const stringToCalendarDate = (dateString: string): CalendarDate => {
     const [year, month, day] = dateString.split('-').map(Number);

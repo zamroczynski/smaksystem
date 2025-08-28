@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type UserEditProps } from '@/types';
 import { Head, useForm, router } from '@inertiajs/vue3';
 
 import { Button } from '@/components/ui/button';
@@ -13,27 +13,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 import { EyeIcon, EyeOffIcon } from 'lucide-vue-next';
 
-const props = defineProps<{
-    user: {
-        id: number;
-        name: string;
-        login: string;
-        email: string;
-        current_role?: string;
-    };
-    roles: Array<{ id: number; name: string }>;
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    breadcrumbs: BreadcrumbItem[];
-}>();
+const props = defineProps<UserEditProps>();
 
 const userForm = useForm({
     name: props.user.name,
     login: props.user.login,
     email: props.user.email,
-    role_name: props.user.current_role || null,
+    role_name: props.user.role || null,
 });
 
 const passwordForm = useForm({

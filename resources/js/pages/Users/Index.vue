@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type UserIndexProps } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 
 import { Button } from '@/components/ui/button';
@@ -18,45 +18,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref, watch, h } from 'vue';
+import { ref, watch, h, defineAsyncComponent } from 'vue';
 
-import DataTable from '@/components/DataTable.vue';
 import { ColumnDef } from '@tanstack/vue-table';
 
+const DataTable = defineAsyncComponent(() =>
+  import('@/components/DataTable.vue')
+);
 
-const props = defineProps<{
-    users: {
-        data: Array<{
-            id: number;
-            name: string;
-            login: string;
-            email: string;
-            created_at: string; 
-            roles: string[];
-            deleted_at: string | null;       
-        }>;
-        links: Array<{
-            url: string | null;
-            label: string;
-            active: boolean;
-        }>;
-        current_page: number;
-        from: number;
-        last_page: number;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    show_disabled: boolean;
-    breadcrumbs: BreadcrumbItem[];
-    filter: string | null;
-    sort_by: string | null;
-    sort_direction: 'asc' | 'desc' | null;
-}>();
+const props = defineProps<UserIndexProps>();
 
 const currentPage = ref(props.users.current_page);
 const currentGlobalFilter = ref(props.filter);
@@ -187,17 +157,17 @@ const columns: ColumnDef<typeof props.users.data[number]>[] = [
         enableGlobalFilter: true,
     },
     {
-        accessorKey: 'roles',
-        header: 'Role',
+        accessorKey: 'role',
+        header: 'Rola',
         cell: ({ row }) => {
-            const roles = row.original.roles;
-            return h('span', roles && roles.length > 0 ? roles.join(', ') : 'Brak');
+            const role = row.original.role;
+            return h('span', role ? role : 'Brak');
         },
-        enableSorting: false,
+        enableSorting: false, 
         enableGlobalFilter: true,
         filterFn: (row, columnId, filterValue) => {
-            const roles = row.original.roles;
-            return roles.some(role => role.toLowerCase().includes(filterValue.toLowerCase()));
+            const role = row.original.role;
+            return role ? role.toLowerCase().includes(filterValue.toLowerCase()) : false;
         }
     },
     {
@@ -230,7 +200,7 @@ const columns: ColumnDef<typeof props.users.data[number]>[] = [
                           variant: 'destructive',
                           size: 'sm',
                           onClick: () => confirmDelete(user.id, user.name),
-                          disabled: user.id === (props.flash?.auth?.user?.id || undefined) || user.roles.includes('admin'),
+                          disabled: user.id === (props.auth?.user?.id || undefined) || user.role === 'admin',
                       }, { default: () => 'Wyłącz' })
                     : null,
             ]);

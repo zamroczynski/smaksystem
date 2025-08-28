@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'vue-sonner';
-import { ref, computed } from 'vue';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ref, computed, defineAsyncComponent } from 'vue';
+import { PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { CalendarDate, parseDate } from '@internationalized/date';
@@ -24,19 +22,17 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { type ScheduleCreateProps } from '@/types';
 
-interface ShiftTemplate {
-    id: number;
-    name: string;
-}
+const Calendar = defineAsyncComponent(() =>
+  import('@/components/ui/calendar/Calendar.vue')
+);
 
-interface CreateProps {
-    activeShiftTemplates: ShiftTemplate[];
-    errors: Record<string, string>;
-    breadcrumbs: BreadcrumbItem[];
-}
+const Popover = defineAsyncComponent(() =>
+  import('@/components/ui/popover/Popover.vue')
+);
 
-const props = defineProps<CreateProps>();
+const props = defineProps<ScheduleCreateProps>();
 
 const form = useForm({
     name: '',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
+import { type PreferenceIndexProps } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -20,36 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ref, watch } from 'vue';
 
-const props = defineProps<{
-    preferences: {
-        data: Array<{
-            id: number;
-            description: string | null;
-            date_from: string;
-            date_to: string;
-            is_active: boolean;
-            deleted_at: string | null;
-            availability: boolean;
-        }>;
-        links: Array<{
-            url: string | null;
-            label: string;
-            active: boolean;
-        }>;
-        current_page: number;
-        from: number;
-        last_page: number;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    show_inactive_or_deleted: boolean;
-    breadcrumbs: BreadcrumbItem[]
-}>();
+const props = defineProps<PreferenceIndexProps>();
 
 const showInactiveOrDeleted = ref(props.show_inactive_or_deleted);
 

@@ -114,7 +114,7 @@ class UserService
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'roles' => $user->roles->pluck('name')->toArray(),
+                'role' => $user->roles->pluck('name')->first(),
                 'created_at' => $user->created_at ? $user->created_at->format('Y-m-d H:i') : null,
                 'updated_at' => $user->updated_at ? $user->updated_at->format('Y-m-d H:i') : null,
                 'deleted_at' => $user->deleted_at,

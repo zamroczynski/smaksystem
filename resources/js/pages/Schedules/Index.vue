@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,40 +18,9 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ref, watch } from 'vue';
+import { type ScheduleIndexProps } from '@/types/schedule';
 
-interface Schedule {
-    id: number;
-    name: string;
-    period_start_date: string;
-    status: 'draft' | 'published' | 'archived';
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
-}
-
-interface SchedulesPaginated {
-    data: Schedule[];
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-    current_page: number;
-    last_page: number;
-    from: number;
-    to: number;
-    total: number;
-}
-
-const props = defineProps<{
-    schedules: SchedulesPaginated;
-    show_archived: boolean;
-    flash?: {
-        success?: string;
-        error?: string;
-    };
-    breadcrumbs: BreadcrumbItem[];
-}>();
+const props = defineProps<ScheduleIndexProps>();
 
 watch(
     () => props.flash,
