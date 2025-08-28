@@ -11,7 +11,7 @@ export interface ShiftTemplateIndexProps extends PageProps {
 }
 
 export interface ShiftTemplateCreateProps extends PageProps {
-    // pass
+    tempData: null;
 }
 
 export interface ShiftTemplateEditProps extends PageProps {
