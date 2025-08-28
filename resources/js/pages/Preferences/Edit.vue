@@ -11,12 +11,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RangeCalendar } from '@/components/ui/range-calendar';
 import { toast } from 'vue-sonner';
 import { type DateRange } from 'reka-ui'
-import { type Ref, ref, watch, defineAsyncComponent } from 'vue';
+import { type Ref, ref, watch } from 'vue';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
 import { DateFormatter } from '@internationalized/date';
 import { cn } from '@/lib/utils';
 import { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone } from "@internationalized/date";
+// import { defineAsyncComponent } from 'vue';
 
 // const RangeCalendar = defineAsyncComponent(() => 
 //     import('@/components/ui/range-calendar')
