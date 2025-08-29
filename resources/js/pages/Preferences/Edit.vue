@@ -17,11 +17,6 @@ import { DateFormatter } from '@internationalized/date';
 import { cn } from '@/lib/utils';
 import { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone } from "@internationalized/date";
-// import { defineAsyncComponent } from 'vue';
-
-// const RangeCalendar = defineAsyncComponent(() => 
-//     import('@/components/ui/range-calendar')
-// );
 
 const props = defineProps<PreferenceEditProps>();
 

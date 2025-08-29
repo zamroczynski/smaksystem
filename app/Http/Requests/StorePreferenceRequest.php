@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\NoOverlappingPreferencesRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,7 @@ class StorePreferenceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date_from' => ['required', 'date', 'after_or_equal:today'],
+            'date_from' => ['required', 'date', 'after_or_equal:today', new NoOverlappingPreferencesRule($this->input('date_to')),],
             'date_to' => ['required', 'date', 'after_or_equal:date_from'],
             'description' => ['nullable', 'string', 'max:1000'],
             'availability' => ['required', 'string', Rule::in(['available', 'unavailable'])],
