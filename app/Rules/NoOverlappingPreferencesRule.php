@@ -27,14 +27,15 @@ class NoOverlappingPreferencesRule implements ValidationRule
     /**
      * Create a new rule instance.
      *
-     * @param string $dateTo The end date of the new preference.
-     * @param int|null $ignoreId The ID of the preference to ignore (used during updates).
+     * @param  string  $dateTo  The end date of the new preference.
+     * @param  int|null  $ignoreId  The ID of the preference to ignore (used during updates).
      */
     public function __construct(string $dateTo, ?int $ignoreId = null)
     {
         $this->dateTo = $dateTo;
         $this->ignoreId = $ignoreId;
     }
+
     /**
      * Run the validation rule.
      *
@@ -46,14 +47,14 @@ class NoOverlappingPreferencesRule implements ValidationRule
         $dateTo = Carbon::parse($this->dateTo);
 
         $userId = Auth::id();
-        if (!$userId) {
+        if (! $userId) {
             return;
         }
 
         $query = Preference::where('user_id', $userId)
             ->where(function ($query) use ($dateFrom, $dateTo) {
                 $query->where('date_from', '<=', $dateTo)
-                      ->where('date_to', '>=', $dateFrom);
+                    ->where('date_to', '>=', $dateFrom);
             });
 
         if ($this->ignoreId) {

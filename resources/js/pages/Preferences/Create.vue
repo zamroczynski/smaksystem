@@ -21,11 +21,6 @@ import { getLocalTimeZone } from "@internationalized/date";
 
 const props = defineProps<PreferenceCreateProps>();
 
-const stringToCalendarDate = (dateString: string): CalendarDate => {
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new CalendarDate(year, month, day);
-};
-
 const getTodayAsCalendarDate = (): CalendarDate => {
     const today = new Date();
     return new CalendarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
@@ -37,11 +32,6 @@ const form = useForm({
     description: '',
     availability: 'available',
 });
-
-// form.transform((data) => ({
-//     ...data,
-//     availability: data.availability === 'true',
-// }));
 
 const dateRange = ref({
     start: getTodayAsCalendarDate(),
