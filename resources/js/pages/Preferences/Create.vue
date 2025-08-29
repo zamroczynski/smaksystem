@@ -30,13 +30,8 @@ const form = useForm({
     date_from: null as string | null,
     date_to: null as string | null,
     description: '',
-    availability: 'true',
+    availability: 'available',
 });
-
-form.transform((data) => ({
-    ...data,
-    availability: data.availability === 'true',
-}));
 
 const dateRange = ref({
     start: getTodayAsCalendarDate(),
@@ -48,7 +43,6 @@ watch(dateRange, (newRange) => {
     form.date_to = newRange?.end ? newRange.end.toString() : null;
 }, { deep: true });
 
-// Formatowanie daty do wyświetlania
 const formatter = new DateFormatter('pl-PL', {
     dateStyle: 'medium',
 });
@@ -97,14 +91,14 @@ const submit = () => {
                     <form @submit.prevent="submit" class="space-y-6">
                         <div>
                             <Label>Dyspozycja na wybrane dni <span class="text-red-500">*</span></Label>
-                            <RadioGroup v-model="form.availability" default-value="true" class="flex gap-4 mt-2">
+                            <RadioGroup v-model="form.availability" class="flex gap-4 mt-2">
                                 <div class="flex items-center space-x-2">
-                                    <RadioGroupItem id="availability-true" value="true" />
-                                    <Label for="availability-true">Chcę przyjść do pracy</Label>
+                                    <RadioGroupItem id="availability-edit-true" value="available" />
+                                    <Label for="availability-edit-true">Chcę przyjść do pracy</Label>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <RadioGroupItem id="availability-false" value="false" />
-                                    <Label for="availability-false">Nie mogę przyjść do pracy</Label>
+                                    <RadioGroupItem id="availability-edit-false" value="unavailable" />
+                                    <Label for="availability-edit-false">Nie mogę przyjść do pracy</Label>
                                 </div>
                             </RadioGroup>
                             <div v-if="form.errors.availability" class="text-red-500 text-sm mt-1">
