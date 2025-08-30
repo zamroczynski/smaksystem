@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             ShiftTemplateSeeder::class,
-            HolidaySeeder::class
+            HolidaySeeder::class,
         ]);
 
         $user = User::factory()->create([
@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('Generating holiday instances for the current and next year...');
         Artisan::call('app:generate-holidays', [
-            '--year' => now()->year
+            '--year' => now()->year,
         ]);
 
         $this->command->info('Holiday instances generated successfully.');

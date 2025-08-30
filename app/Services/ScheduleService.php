@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\HolidayInstance;
 use App\Models\Preference;
 use App\Models\Schedule;
 use App\Models\ScheduleAssignment;
 use App\Models\User;
-use App\Models\HolidayInstance;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -278,10 +278,6 @@ class ScheduleService
 
     /**
      * Generates an array of days for a given month, including holiday information.
-     *
-     * @param Carbon $startDate
-     * @param Carbon $endDate
-     * @return array
      */
     private function generateMonthDays(Carbon $startDate, Carbon $endDate): array
     {

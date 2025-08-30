@@ -14,5 +14,5 @@ return [
 
     'generation_month' => env('HOLIDAY_GENERATION_MONTH', 12),
 
-    'generation_day' => env('HOLIDAY_GENERATION_DAY', 10), 
+    'generation_day' => env('HOLIDAY_GENERATION_DAY', 10),
 ];

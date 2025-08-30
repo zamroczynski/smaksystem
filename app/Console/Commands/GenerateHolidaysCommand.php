@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Services\HolidayService;
+use Illuminate\Console\Command;
 
 class GenerateHolidaysCommand extends Command
 {
@@ -32,11 +32,13 @@ class GenerateHolidaysCommand extends Command
         try {
             $holidayService->generateForYear((int) $year);
         } catch (\Exception $e) {
-            $this->error("An error occurred: " . $e->getMessage());
+            $this->error('An error occurred: '.$e->getMessage());
+
             return self::FAILURE;
         }
 
         $this->info("Holidays for the year have been successfully generated. {$year}.");
+
         return self::SUCCESS;
     }
 }

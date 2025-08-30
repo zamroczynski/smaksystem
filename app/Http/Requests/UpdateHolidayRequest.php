@@ -23,7 +23,7 @@ class UpdateHolidayRequest extends FormRequest
     public function rules(): array
     {
         $holidayId = $this->route('holiday')->id;
-        
+
         return [
             'name' => ['required', 'string', 'max:100'],
             'date' => [

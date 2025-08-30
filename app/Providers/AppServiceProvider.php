@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Holiday;
+use App\Observers\HolidayObserver;
 use Illuminate\Support\ServiceProvider;
-use App\Models\Holiday; 
-use App\Observers\HolidayObserver; 
 
 class AppServiceProvider extends ServiceProvider
 {

@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\HolidayInstance;
 use App\Models\Holiday;
+use App\Models\HolidayInstance;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class HolidayService
 {
@@ -40,7 +40,7 @@ class HolidayService
             $date = null;
 
             if ($definition->day_month) {
-                $date = Carbon::createFromFormat('m-d-Y', substr($definition->day_month, 0, 2) . '-' . substr($definition->day_month, 3, 2) . '-' . $year)->startOfDay();
+                $date = Carbon::createFromFormat('m-d-Y', substr($definition->day_month, 0, 2).'-'.substr($definition->day_month, 3, 2).'-'.$year)->startOfDay();
             } elseif (
                 isset($definition->calculation_rule['base_type']) &&
                 $definition->calculation_rule['base_type'] === 'event' &&
@@ -75,13 +75,13 @@ class HolidayService
 
         // --- STEP 3: Get your final data ready to save ---
         foreach ($definitions as $definition) {
-             if ($calculatedDatesMap->has($definition->id)) {
-                 $instances->push([
+            if ($calculatedDatesMap->has($definition->id)) {
+                $instances->push([
                     'name' => $definition->name,
                     'date' => $calculatedDatesMap->get($definition->id)->toDateString(),
                     'holiday_definition_id' => $definition->id,
                 ]);
-             }
+            }
         }
 
         return $instances;
@@ -116,8 +116,8 @@ class HolidayService
         $query->when($validatedData['filter'] ?? null, function ($q, $filter) {
             $q->where(function ($subQuery) use ($filter) {
                 $subQuery->where('name', 'like', "%{$filter}%")
-                         ->orWhere('date', 'like', "%{$filter}%")
-                         ->orWhere('day_month', 'like', "%{$filter}%");
+                    ->orWhere('date', 'like', "%{$filter}%")
+                    ->orWhere('day_month', 'like', "%{$filter}%");
             });
         });
 
@@ -144,7 +144,7 @@ class HolidayService
      * Synchronizes a single holiday definition with the holiday_instances table.
      * It recalculates its occurrences for the current and next year.
      *
-     * @param Holiday $holiday The holiday definition that was changed.
+     * @param  Holiday  $holiday  The holiday definition that was changed.
      */
     public function syncHolidayInstances(Holiday $holiday): void
     {
@@ -177,22 +177,18 @@ class HolidayService
     /**
      * Calculates the date for a single holiday definition for a given year.
      * This is a refactored part of the logic from calculateDates.
-     *
-     * @param Holiday $definition
-     * @param int $year
-     * @return Carbon|null
      */
     private function calculateSingleDate(Holiday $definition, int $year): ?Carbon
     {
         if ($definition->day_month) {
-            return Carbon::createFromFormat('m-d-Y', substr($definition->day_month, 0, 2) . '-' . substr($definition->day_month, 3, 2) . '-' . $year)->startOfDay();
+            return Carbon::createFromFormat('m-d-Y', substr($definition->day_month, 0, 2).'-'.substr($definition->day_month, 3, 2).'-'.$year)->startOfDay();
         }
-        
+
         if ($definition->calculation_rule) {
-             $rule = $definition->calculation_rule;
-             if ($rule['base_type'] === 'event' && $rule['base_event'] === 'easter') {
-                 return (clone $this->getEasterSunday($year))->addDays($rule['offset'] ?? 0);
-             }
+            $rule = $definition->calculation_rule;
+            if ($rule['base_type'] === 'event' && $rule['base_event'] === 'easter') {
+                return (clone $this->getEasterSunday($year))->addDays($rule['offset'] ?? 0);
+            }
         }
 
         if ($definition->date && Carbon::parse($definition->date)->year === $year) {

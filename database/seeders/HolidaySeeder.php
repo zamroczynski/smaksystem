@@ -25,19 +25,19 @@ class HolidaySeeder extends Seeder
 
             [
                 'name' => 'Wielkanoc (Niedziela)',
-                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 0]
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 0],
             ],
             [
                 'name' => 'Poniedziałek Wielkanocny',
-                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 1]
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 1],
             ],
             [
                 'name' => 'Zesłanie Ducha Świętego (Zielone Świątki)',
-                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 49]
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 49],
             ],
             [
                 'name' => 'Boże Ciało',
-                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 60]
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 60],
             ],
         ];
 

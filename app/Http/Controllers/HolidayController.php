@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Holiday;
+use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\IndexHolidayRequest;
 use App\Http\Requests\StoreHolidayRequest;
 use App\Http\Requests\UpdateHolidayRequest;
+use App\Models\Holiday;
 use App\Services\HolidayService;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Helpers\BreadcrumbsGenerator;
 
 class HolidayController extends Controller
 {
@@ -35,7 +34,7 @@ class HolidayController extends Controller
         return Inertia::render('Holidays/Index', [
             'holidays' => $holidays,
             'filter' => $validatedData['filter'] ?? null,
-            'show_archived' => (bool)($validatedData['show_archived'] ?? false),
+            'show_archived' => (bool) ($validatedData['show_archived'] ?? false),
             'sort_by' => 'name',
             'sort_direction' => $validatedData['direction'] ?? 'asc',
             'breadcrumbs' => $this->getHolidayBreadcrumbs(),
@@ -110,6 +109,7 @@ class HolidayController extends Controller
     {
         $holiday = Holiday::onlyTrashed()->findOrFail($id);
         $holiday->restore();
+
         return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie przywrócony.');
     }
 

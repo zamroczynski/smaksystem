@@ -7,9 +7,7 @@ use App\Services\HolidayService;
 
 class HolidayObserver
 {
-    public function __construct(protected HolidayService $holidayService)
-    {
-    }
+    public function __construct(protected HolidayService $holidayService) {}
 
     /**
      * Handle the Holiday "created" event.

@@ -5,15 +5,15 @@ namespace App\Http\Controllers;
 use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\UpdateScheduleRequest;
+use App\Models\HolidayInstance;
 use App\Models\Schedule;
 use App\Models\ShiftTemplate;
-use App\Models\HolidayInstance;
-use App\Services\ScheduleService;
 use App\Services\HolidayService;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Services\ScheduleService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class ScheduleController extends Controller
 {
@@ -80,6 +80,7 @@ class ScheduleController extends Controller
             }
         } catch (\Exception $e) {
             Log::error($e);
+
             return back()->with('error', 'Wystąpił błąd podczas przygotowywania dni wolnych. Spróbuj ponownie.');
         }
 
