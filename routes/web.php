@@ -6,7 +6,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ShiftTemplateController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\WorkerScheduleController;
-use App\Http\Controllers\NonWorkingDayController;
+use App\Http\Controllers\HolidayController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'can:Grafik Pracy'])->group(function () {
 });
 
 Route::middleware(['auth', 'can:Konfiguracja dni wolnych'])->group(function () {
-    Route::resource('non-working-days', NonWorkingDayController::class)->except(['show', 'create', 'edit']);
+    Route::resource('holidays', HolidayController::class)->except(['show', 'create', 'edit']);
 });
 
 require __DIR__.'/settings.php';

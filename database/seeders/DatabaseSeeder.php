@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             ShiftTemplateSeeder::class,
-            NonWorkingDaySeeder::class
+            HolidaySeeder::class
         ]);
 
         $user = User::factory()->create([

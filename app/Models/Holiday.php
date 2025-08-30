@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class NonWorkingDay extends Model
+class Holiday extends Model
 {
-    /** @use HasFactory<\Database\Factories\NonWorkingDayFactory> */
+    /** @use HasFactory<\Database\Factories\Holiday> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [

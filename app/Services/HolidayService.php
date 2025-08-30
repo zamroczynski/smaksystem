@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\HolidayInstance;
-use App\Models\NonWorkingDay;
+use App\Models\Holiday;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -19,7 +19,7 @@ class HolidayService
     {
         HolidayInstance::whereYear('date', $year)->delete();
 
-        $definitions = NonWorkingDay::all();
+        $definitions = Holiday::all();
 
         $holidayInstances = $this->calculateDates($definitions, $year);
 

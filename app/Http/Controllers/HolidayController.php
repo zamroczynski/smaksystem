@@ -2,29 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\NonWorkingDay;
+use App\Models\Holiday;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreNonWorkingDayRequest;
-use App\Http\Requests\UpdateNonWorkingDayRequest;
+use App\Http\Requests\StoreHolidayRequest;
+use App\Http\Requests\UpdateHolidayRequest;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class NonWorkingDayController extends Controller
+class HolidayController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $nonWorkingDays = NonWorkingDay::query()
+        $Holidays = Holiday::query()
             ->orderBy('date', 'desc')
             ->orderBy('day_month', 'asc')
             ->paginate(20)
             ->withQueryString();
 
-        return Inertia::render('NonWorkingDays/Index', [
-            'nonWorkingDays' => $nonWorkingDays,
+        return Inertia::render('Holidays/Index', [
+            'Holidays' => $Holidays,
         ]);
     }
 
@@ -39,9 +39,9 @@ class NonWorkingDayController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreNonWorkingDayRequest $request)
+    public function store(StoreHolidayRequest $request)
     {
-        NonWorkingDay::create($request->validated());
+        Holiday::create($request->validated());
 
         return to_route('non-working-days.index');
     }
@@ -49,7 +49,7 @@ class NonWorkingDayController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(NonWorkingDay $nonWorkingDay)
+    public function show(Holiday $Holiday)
     {
         //
     }
@@ -57,7 +57,7 @@ class NonWorkingDayController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(NonWorkingDay $nonWorkingDay)
+    public function edit(Holiday $Holiday)
     {
         //
     }
@@ -65,9 +65,9 @@ class NonWorkingDayController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateNonWorkingDayRequest $request, NonWorkingDay $nonWorkingDay)
+    public function update(UpdateHolidayRequest $request, Holiday $Holiday)
     {
-        $nonWorkingDay->update($request->validated());
+        $Holiday->update($request->validated());
 
         return to_route('non-working-days.index');
     }
@@ -75,9 +75,9 @@ class NonWorkingDayController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(NonWorkingDay $nonWorkingDay)
+    public function destroy(Holiday $Holiday)
     {
-        $nonWorkingDay->delete();
+        $Holiday->delete();
 
         return to_route('non-working-days.index');
     }

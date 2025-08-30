@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\NonWorkingDay;
+use App\Models\Holiday;
 use Illuminate\Database\Seeder;
 
-class NonWorkingDaySeeder extends Seeder
+class HolidaySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -30,7 +30,7 @@ class NonWorkingDaySeeder extends Seeder
         ];
 
         foreach ($holidays as $holiday) {
-            NonWorkingDay::updateOrCreate(['name' => $holiday['name']], $holiday);
+            Holiday::updateOrCreate(['name' => $holiday['name']], $holiday);
         }
     }
 }
