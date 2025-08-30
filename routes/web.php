@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\ScheduleController;
@@ -59,6 +60,11 @@ Route::middleware(['auth', 'can:Grafik Pracy'])->group(function () {
         Route::get('/{schedule}/pdf/my', [WorkerScheduleController::class, 'downloadMyPdf'])->name('pdf.my');
     });
 
+});
+
+Route::middleware(['auth', 'can:Konfiguracja dni wolnych'])->group(function () {
+    Route::resource('holidays', HolidayController::class)->except(['show']);
+    Route::post('/holidays/{holiday}/restore', [HolidayController::class, 'restore'])->name('holidays.restore');
 });
 
 require __DIR__.'/settings.php';

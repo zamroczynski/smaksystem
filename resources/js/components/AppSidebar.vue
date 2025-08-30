@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 // import { BookOpen, Folder } from 'lucide-vue-next';
-import { LayoutGrid, User, Award, FileSliders, AlarmClockPlus, CalendarClock, CalendarDays } from 'lucide-vue-next';
+import { LayoutGrid, User, Award, FileSliders, AlarmClockPlus, CalendarClock, CalendarDays, TreePalm } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -48,6 +48,12 @@ const allNavItems: NavItemWithPermission[] = [
         permission: 'Harmonogram Zmian',
     },
     {
+        title: 'Konfiguracja dni wolnych',
+        href: '/holidays',
+        icon: TreePalm,
+        permission: 'Konfiguracja dni wolnych',
+    },
+    {
         title: 'Tworzenie Grafików pracy',
         href: '/schedules',
         icon: CalendarClock,
@@ -63,11 +69,9 @@ const allNavItems: NavItemWithPermission[] = [
 
 const filteredNavItems = computed(() => {
     return allNavItems.filter(item => {
-        // Jeśli element nie ma określonego uprawnienia, jest zawsze widoczny (np. Pulpit nawigacyjny)
         if (!item.permission) {
             return true;
         }
-        // Sprawdź, czy użytkownik posiada wymagane uprawnienie
         return userPermissions.value.includes(item.permission);
     });
 });

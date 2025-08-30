@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        $this->call(PermissionSeeder::class);
-        $this->call(RoleSeeder::class);
-        $this->call(ShiftTemplateSeeder::class);
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            ShiftTemplateSeeder::class,
+            HolidaySeeder::class,
+        ]);
 
         $user = User::factory()->create([
             'login' => 'admin',
@@ -28,5 +30,11 @@ class DatabaseSeeder extends Seeder
         $user->assignRole('Kierownik');
         User::factory(100)->employee()->create();
 
+        $this->command->info('Generating holiday instances for the current and next year...');
+        Artisan::call('app:generate-holidays', [
+            '--year' => now()->year,
+        ]);
+
+        $this->command->info('Holiday instances generated successfully.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\HolidayInstance;
 use App\Models\Preference;
 use App\Models\Schedule;
 use App\Models\ScheduleAssignment;
@@ -65,16 +66,7 @@ class ScheduleService
         $startDate = Carbon::parse($schedule->period_start_date);
         $endDate = $startDate->copy()->endOfMonth();
 
-        $monthDays = [];
-        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
-            $monthDays[] = [
-                'date' => $date->format('Y-m-d'),
-                'day_number' => $date->day,
-                'is_sunday' => $date->isSunday(),
-                'is_saturday' => $date->isSaturday(),
-                'is_holiday' => false, // TODO: Implement holiday check if needed
-            ];
-        }
+        $monthDays = $this->generateMonthDays($startDate, $endDate);
 
         $assignments = [];
         foreach ($schedule->assignments as $assignment) {
@@ -206,19 +198,9 @@ class ScheduleService
 
         $startDate = Carbon::parse($schedule->period_start_date);
         $endDate = $startDate->copy()->endOfMonth();
-        $monthDays = [];
         Carbon::setLocale('pl');
 
-        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
-            $monthDays[] = [
-                'date' => $date->format('Y-m-d'),
-                'day_number' => $date->day,
-                'day_name_short' => $date->dayName,
-                'is_sunday' => $date->isSunday(),
-                'is_saturday' => $date->isSaturday(),
-                'is_holiday' => false,
-            ];
-        }
+        $monthDays = $this->generateMonthDays($startDate, $endDate);
 
         $assignments = $schedule->assignments->groupBy(function ($assignment) {
             return "{$assignment->shift_template_id}_{$assignment->assignment_date->format('Y-m-d')}_{$assignment->position}";
@@ -270,19 +252,9 @@ class ScheduleService
 
         $startDate = Carbon::parse($schedule->period_start_date);
         $endDate = $startDate->copy()->endOfMonth();
-        $monthDays = [];
         Carbon::setLocale('pl');
 
-        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
-            $monthDays[] = [
-                'date' => $date->format('Y-m-d'),
-                'day_number' => $date->day,
-                'day_name_short' => $date->dayName,
-                'is_sunday' => $date->isSunday(),
-                'is_saturday' => $date->isSaturday(),
-                'is_holiday' => false,
-            ];
-        }
+        $monthDays = $this->generateMonthDays($startDate, $endDate);
 
         $transformedAssignments = [];
         foreach ($schedule->assignments as $assignment) {
@@ -302,5 +274,33 @@ class ScheduleService
             'view_type' => $viewType,
             'auth_user_id' => $userId,
         ];
+    }
+
+    /**
+     * Generates an array of days for a given month, including holiday information.
+     */
+    private function generateMonthDays(Carbon $startDate, Carbon $endDate): array
+    {
+        $holidaysInMonth = HolidayInstance::whereBetween('date', [$startDate, $endDate])
+            ->pluck('date')
+            ->map(fn ($date) => $date->format('Y-m-d'))
+            ->flip();
+
+        $monthDays = [];
+        Carbon::setLocale('pl');
+
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            $dateString = $date->format('Y-m-d');
+            $monthDays[] = [
+                'date' => $dateString,
+                'day_number' => $date->day,
+                'day_name_short' => $date->dayName,
+                'is_sunday' => $date->isSunday(),
+                'is_saturday' => $date->isSaturday(),
+                'is_holiday' => isset($holidaysInMonth[$dateString]),
+            ];
+        }
+
+        return $monthDays;
     }
 }

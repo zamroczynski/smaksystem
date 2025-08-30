@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Holiday;
+use App\Observers\HolidayObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Holiday::observe(HolidayObserver::class);
     }
 }
