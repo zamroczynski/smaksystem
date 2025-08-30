@@ -42,11 +42,22 @@ export interface Schedule extends TimestampsModel {
     status: 'draft' | 'published' | 'archived';
 }
 
-interface ShiftTemplate extends TimestampsModel {
+export interface ShiftTemplate extends TimestampsModel {
     id: number;
     name: string;
     time_from: string; 
     time_to: string;  
     duration_hours: number;
     required_staff_count: number; 
+}
+
+export interface Holiday extends TimestampsModel {
+    id: number;
+    name: string;
+    date: string | null;
+    day_month: string | null;
+    calculation_rule: {
+        base: string;
+        offset: number;
+    } | null;
 }

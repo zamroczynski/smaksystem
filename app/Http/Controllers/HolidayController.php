@@ -3,28 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Models\Holiday;
-use Illuminate\Http\Request;
+use App\Http\Requests\IndexHolidayRequest;
 use App\Http\Requests\StoreHolidayRequest;
 use App\Http\Requests\UpdateHolidayRequest;
+use App\Services\HolidayService;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Helpers\BreadcrumbsGenerator;
 
 class HolidayController extends Controller
 {
+    protected $holidayService;
+
+    public function __construct(HolidayService $holidayService)
+    {
+        $this->holidayService = $holidayService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(IndexHolidayRequest $request): Response
     {
-        $Holidays = Holiday::query()
-            ->orderBy('date', 'desc')
-            ->orderBy('day_month', 'asc')
-            ->paginate(20)
-            ->withQueryString();
+        $validatedData = $request->validated();
+
+        $holidays = $this->holidayService->getHolidaysForIndex($validatedData);
 
         return Inertia::render('Holidays/Index', [
-            'Holidays' => $Holidays,
+            'holidays' => $holidays,
+            'filter' => $validatedData['filter'] ?? null,
+            'show_archived' => (bool)($validatedData['show_archived'] ?? false),
+            'sort_by' => 'name',
+            'sort_direction' => $validatedData['direction'] ?? 'asc',
+            'breadcrumbs' => BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+                ->add('Dni Wolne', route('holidays.index'))
+                ->get(),
         ]);
     }
 
@@ -33,7 +49,12 @@ class HolidayController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Holidays/Create', [
+            'breadcrumbs' => BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+                ->add('Dni Wolne', route('holidays.index'))
+                ->add('Dodaj nowy', route('holidays.create'))
+                ->get(),
+        ]);
     }
 
     /**
@@ -43,7 +64,7 @@ class HolidayController extends Controller
     {
         Holiday::create($request->validated());
 
-        return to_route('non-working-days.index');
+        return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie dodany.');
     }
 
     /**
@@ -69,7 +90,7 @@ class HolidayController extends Controller
     {
         $Holiday->update($request->validated());
 
-        return to_route('non-working-days.index');
+        return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie zaktualizowany.');
     }
 
     /**
@@ -79,6 +100,16 @@ class HolidayController extends Controller
     {
         $Holiday->delete();
 
-        return to_route('non-working-days.index');
+        return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie zarchiwizowany.');
+    }
+
+    /**
+     * Restore the specified soft-deleted day.
+     */
+    public function restore(Request $request, string $id): RedirectResponse
+    {
+        $holiday = Holiday::onlyTrashed()->findOrFail($id);
+        $holiday->restore();
+        return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie przywrócony.');
     }
 }

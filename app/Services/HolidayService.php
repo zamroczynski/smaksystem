@@ -6,6 +6,7 @@ use App\Models\HolidayInstance;
 use App\Models\Holiday;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class HolidayService
 {
@@ -69,5 +70,32 @@ class HolidayService
         $this->easterSunday = Carbon::createFromTimestamp($date)->startOfDay();
 
         return $this->easterSunday;
+    }
+
+    /**
+     * Retrieves a paginated and filtered list of days off for the index view.
+     */
+    public function getHolidaysForIndex(array $validatedData): LengthAwarePaginator
+    {
+        $query = Holiday::query();
+
+        $query->when($validatedData['show_archived'] ?? false, function ($q) {
+            $q->onlyTrashed();
+        });
+
+        $query->when($validatedData['filter'] ?? null, function ($q, $filter) {
+            $q->where(function ($subQuery) use ($filter) {
+                $subQuery->where('name', 'like', "%{$filter}%")
+                         ->orWhere('date', 'like', "%{$filter}%")
+                         ->orWhere('day_month', 'like', "%{$filter}%");
+            });
+        });
+
+        $query->orderBy(
+            'name',
+            $validatedData['direction'] ?? 'asc'
+        );
+
+        return $query->paginate(20)->withQueryString();
     }
 }
