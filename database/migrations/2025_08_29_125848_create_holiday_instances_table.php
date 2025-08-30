@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('holiday_instances', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('holiday_definition_id')->constrained('holidays')->onDelete('cascade');
             $table->string('name', 100);
             $table->date('date');
+            $table->unique(['date', 'holiday_definition_id']);
         });
     }
 

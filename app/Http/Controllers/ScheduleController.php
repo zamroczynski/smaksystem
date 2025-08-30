@@ -13,6 +13,7 @@ use App\Services\HolidayService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
 {
@@ -78,6 +79,7 @@ class ScheduleController extends Controller
                 $holidayService->generateForYear($targetYear);
             }
         } catch (\Exception $e) {
+            Log::error($e);
             return back()->with('error', 'Wystąpił błąd podczas przygotowywania dni wolnych. Spróbuj ponownie.');
         }
 

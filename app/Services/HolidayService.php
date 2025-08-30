@@ -79,6 +79,7 @@ class HolidayService
                  $instances->push([
                     'name' => $definition->name,
                     'date' => $calculatedDatesMap->get($definition->id)->toDateString(),
+                    'holiday_definition_id' => $definition->id,
                 ]);
              }
         }
@@ -137,5 +138,67 @@ class HolidayService
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * Synchronizes a single holiday definition with the holiday_instances table.
+     * It recalculates its occurrences for the current and next year.
+     *
+     * @param Holiday $holiday The holiday definition that was changed.
+     */
+    public function syncHolidayInstances(Holiday $holiday): void
+    {
+        $currentYear = now()->year;
+        $yearsToSync = [$currentYear, $currentYear + 1];
+
+        HolidayInstance::where('holiday_definition_id', $holiday->id)->delete();
+
+        if ($holiday->trashed()) {
+            return;
+        }
+
+        foreach ($yearsToSync as $year) {
+            $date = $this->calculateSingleDate($holiday, $year);
+
+            if ($date) {
+                HolidayInstance::updateOrCreate(
+                    [
+                        'date' => $date->toDateString(),
+                        'holiday_definition_id' => $holiday->id,
+                    ],
+                    [
+                        'name' => $holiday->name,
+                    ]
+                );
+            }
+        }
+    }
+
+    /**
+     * Calculates the date for a single holiday definition for a given year.
+     * This is a refactored part of the logic from calculateDates.
+     *
+     * @param Holiday $definition
+     * @param int $year
+     * @return Carbon|null
+     */
+    private function calculateSingleDate(Holiday $definition, int $year): ?Carbon
+    {
+        if ($definition->day_month) {
+            return Carbon::createFromFormat('m-d-Y', substr($definition->day_month, 0, 2) . '-' . substr($definition->day_month, 3, 2) . '-' . $year)->startOfDay();
+        }
+        
+        if ($definition->calculation_rule) {
+             $rule = $definition->calculation_rule;
+             if ($rule['base_type'] === 'event' && $rule['base_event'] === 'easter') {
+                 return (clone $this->getEasterSunday($year))->addDays($rule['offset'] ?? 0);
+             }
+        }
+
+        if ($definition->date && Carbon::parse($definition->date)->year === $year) {
+            return Carbon::parse($definition->date);
+        }
+
+        return null;
     }
 }
