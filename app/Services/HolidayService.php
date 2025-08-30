@@ -125,6 +125,17 @@ class HolidayService
             $validatedData['direction'] ?? 'asc'
         );
 
-        return $query->paginate(20)->withQueryString();
+        return $query->paginate(10)->withQueryString();
+    }
+
+    /**
+     * Refactored private method to fetch base holidays.
+     */
+    public function getBaseHolidays()
+    {
+        return Holiday::whereNotNull('day_month')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
     }
 }

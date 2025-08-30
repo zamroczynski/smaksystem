@@ -63,7 +63,8 @@ Route::middleware(['auth', 'can:Grafik Pracy'])->group(function () {
 });
 
 Route::middleware(['auth', 'can:Konfiguracja dni wolnych'])->group(function () {
-    Route::resource('holidays', HolidayController::class)->except(['show', 'edit']);
+    Route::resource('holidays', HolidayController::class)->except(['show']);
+    Route::post('/holidays/{holiday}/restore', [HolidayController::class, 'restore'])->name('holidays.restore');
 });
 
 require __DIR__.'/settings.php';

@@ -24,8 +24,18 @@ class StoreHolidayRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'date' => ['required_without_all:day_month,calculation_rule', 'nullable', 'date_format:Y-m-d'],
-            'day_month' => ['required_without_all:date,calculation_rule', 'nullable', 'regex:/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/'],
+            'date' => [
+                'required_without_all:day_month,calculation_rule',
+                'nullable',
+                'date_format:Y-m-d',
+                Rule::unique('holidays', 'date')->whereNull('deleted_at'),
+            ],
+            'day_month' => [
+                'required_without_all:date,calculation_rule',
+                'nullable',
+                'regex:/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/',
+                Rule::unique('holidays', 'day_month')->whereNull('deleted_at'),
+            ],
             'calculation_rule' => ['required_without_all:date,day_month', 'nullable', 'array'],
             'calculation_rule.base_type' => ['required_with:calculation_rule', 'string', Rule::in(['event', 'holiday'])],
             'calculation_rule.base_event' => ['required_if:calculation_rule.base_type,event', 'nullable', 'string', Rule::in(['easter'])],

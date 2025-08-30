@@ -23,10 +23,22 @@ class HolidaySeeder extends Seeder
             ['name' => 'Boże Narodzenie (pierwszy dzień)', 'day_month' => '12-25'],
             ['name' => 'Boże Narodzenie (drugi dzień)', 'day_month' => '12-26'],
 
-            ['name' => 'Wielkanoc (Niedziela)', 'calculation_rule' => json_encode(['base' => 'easter', 'offset' => 0])],
-            ['name' => 'Poniedziałek Wielkanocny', 'calculation_rule' => json_encode(['base' => 'easter', 'offset' => 1])],
-            ['name' => 'Zesłanie Ducha Świętego (Zielone Świątki)', 'calculation_rule' => json_encode(['base' => 'easter', 'offset' => 49])],
-            ['name' => 'Boże Ciało', 'calculation_rule' => json_encode(['base' => 'easter', 'offset' => 60])],
+            [
+                'name' => 'Wielkanoc (Niedziela)',
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 0]
+            ],
+            [
+                'name' => 'Poniedziałek Wielkanocny',
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 1]
+            ],
+            [
+                'name' => 'Zesłanie Ducha Świętego (Zielone Świątki)',
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 49]
+            ],
+            [
+                'name' => 'Boże Ciało',
+                'calculation_rule' => ['base_type' => 'event', 'base_event' => 'easter', 'base_holiday_id' => null, 'offset' => 60]
+            ],
         ];
 
         foreach ($holidays as $holiday) {

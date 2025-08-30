@@ -1,29 +1,30 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type HolidayCreateProps } from '@/types/holiday';
+import { type HolidayEditProps, type HolidayEditForm } from '@/types/holiday';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'vue-sonner';
 
-const props = defineProps<HolidayCreateProps>();
+const props = defineProps<HolidayEditProps>();
 
-const holidayType = ref<'single' | 'fixed' | 'movable' | null>(null);
+const getInitialHolidayType = () => {
+    if (props.holiday.date) return 'single';
+    if (props.holiday.day_month) return 'fixed';
+    if (props.holiday.calculation_rule) return 'movable';
+    return null;
+};
 
-const form = useForm({
-    name: '',
-    date: '',
-    day_month: '',
-    calculation_rule: null as {
-        base_type: 'event' | 'holiday';
-        base_event: 'easter' | null;
-        base_holiday_id: number | null;
-        offset: number;
-    } | null,
+const holidayType = ref<'single' | 'fixed' | 'movable' | null>(getInitialHolidayType());
+
+const form = useForm<HolidayEditForm>({
+    name: props.holiday.name,
+    date: props.holiday.date ?? '',
+    day_month: props.holiday.day_month ?? '',
+    calculation_rule: props.holiday.calculation_rule,
 });
 
 watch(holidayType, (newType) => {
@@ -61,11 +62,9 @@ const handleBaseHolidayChange = (value: unknown) => {
 };
 
 const submit = () => {
-    form.post(route('holidays.store'), {
+    form.put(route('holidays.update', props.holiday.id), {
         onSuccess: () => {
-            toast.success('Dzień wolny został pomyślnie dodany.');
-            form.reset();
-            holidayType.value = null;
+            toast.success('Dzień wolny został pomyślnie zaktualizowany.');
         },
         onError: (errors) => {
             if (Object.keys(errors).length > 0) {
@@ -79,12 +78,14 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Dodaj Dzień Wolny" />
+    <Head :title="`Edycja: ${form.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Dodaj Dzień Wolny</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                    Edytuj Dzień Wolny: {{ form.name }}
+                </h3>
 
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
@@ -102,7 +103,7 @@ const submit = () => {
                             <SelectContent>
                                 <SelectItem value="single">Jednorazowy</SelectItem>
                                 <SelectItem value="fixed">Stały, coroczny</SelectItem>
-                                <SelectItem value="movable">Ruchomy, obliczalny (np. Wielkanoc)</SelectItem>
+                                <SelectItem value="movable">Ruchomy, obliczalny</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -115,7 +116,7 @@ const submit = () => {
 
                     <div v-if="holidayType === 'fixed'">
                         <Label for="day_month">Dzień i miesiąc <span class="text-red-500">*</span></Label>
-                        <Input id="day_month" type="text" v-model="form.day_month" placeholder="MM-DD (np. 01-01 dla Nowego Roku)" required />
+                        <Input id="day_month" type="text" v-model="form.day_month" placeholder="MM-DD (np. 01-01)" required />
                         <p v-if="form.errors.day_month" class="text-sm text-red-500 mt-1">{{ form.errors.day_month }}</p>
                     </div>
 
@@ -123,8 +124,11 @@ const submit = () => {
                         <h4 class="font-medium text-sm text-gray-600 dark:text-gray-300">Reguła obliczeniowa</h4>
                         <div>
                             <Label>Święto bazowe</Label>
-                            <Select :model-value="form.calculation_rule.base_event || form.calculation_rule.base_holiday_id" @update:model-value="handleBaseHolidayChange">
-                                <SelectTrigger><SelectValue /></SelectTrigger>
+                            <Select
+                                :model-value="form.calculation_rule.base_event || form.calculation_rule.base_holiday_id"
+                                @update:model-value="handleBaseHolidayChange"
+                            >
+                                <SelectTrigger><SelectValue placeholder="Wybierz święto bazowe..." /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="easter">Wielkanoc (Algorytm)</SelectItem>
                                     <SelectItem v-for="base in props.baseHolidays" :key="base.id" :value="base.id">
@@ -144,7 +148,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex justify-end pt-4">
-                        <Button type="submit" :disabled="form.processing">Dodaj Dzień Wolny</Button>
+                        <Button type="submit" :disabled="form.processing">Zapisz Zmiany</Button>
                     </div>
                 </form>
             </div>

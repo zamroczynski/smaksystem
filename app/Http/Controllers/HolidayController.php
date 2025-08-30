@@ -38,9 +38,7 @@ class HolidayController extends Controller
             'show_archived' => (bool)($validatedData['show_archived'] ?? false),
             'sort_by' => 'name',
             'sort_direction' => $validatedData['direction'] ?? 'asc',
-            'breadcrumbs' => BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-                ->add('Dni Wolne', route('holidays.index'))
-                ->get(),
+            'breadcrumbs' => $this->getHolidayBreadcrumbs(),
         ]);
     }
 
@@ -49,17 +47,9 @@ class HolidayController extends Controller
      */
     public function create()
     {
-        $baseHolidays = Holiday::whereNotNull('day_month')
-        ->select('id', 'name')
-        ->orderBy('name')
-        ->get();
-
         return Inertia::render('Holidays/Create', [
-            'baseHolidays' => $baseHolidays,
-            'breadcrumbs' => BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-                ->add('Dni Wolne', route('holidays.index'))
-                ->add('Dodaj nowy', route('holidays.create'))
-                ->get(),
+            'baseHolidays' => $this->holidayService->getBaseHolidays(),
+            'breadcrumbs' => $this->getHolidayBreadcrumbs('Dodaj dzień wolny', route('holidays.create')),
         ]);
     }
 
@@ -76,7 +66,7 @@ class HolidayController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Holiday $Holiday)
+    public function show(Holiday $holiday)
     {
         //
     }
@@ -84,17 +74,21 @@ class HolidayController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Holiday $Holiday)
+    public function edit(Holiday $holiday)
     {
-        //
+        return Inertia::render('Holidays/Edit', [
+            'holiday' => $holiday,
+            'baseHolidays' => $this->holidayService->getBaseHolidays(),
+            'breadcrumbs' => $this->getHolidayBreadcrumbs('Edytuj dzień wolny', route('holidays.edit', $holiday)),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateHolidayRequest $request, Holiday $Holiday)
+    public function update(UpdateHolidayRequest $request, Holiday $holiday)
     {
-        $Holiday->update($request->validated());
+        $holiday->update($request->validated());
 
         return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie zaktualizowany.');
     }
@@ -102,9 +96,9 @@ class HolidayController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Holiday $Holiday)
+    public function destroy(Holiday $holiday)
     {
-        $Holiday->delete();
+        $holiday->delete();
 
         return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie zarchiwizowany.');
     }
@@ -117,5 +111,20 @@ class HolidayController extends Controller
         $holiday = Holiday::onlyTrashed()->findOrFail($id);
         $holiday->restore();
         return to_route('holidays.index')->with('success', 'Dzień wolny został pomyślnie przywrócony.');
+    }
+
+    /**
+     * Generates breadcrumbs for holiday management.
+     */
+    protected function getHolidayBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
+    {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Konfiguracja dni wolnych', route('holidays.index'));
+
+        if ($pageTitle && $pageRoute) {
+            $breadcrumbs->add($pageTitle, $pageRoute);
+        }
+
+        return $breadcrumbs->get();
     }
 }

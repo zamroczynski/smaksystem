@@ -46,6 +46,7 @@ const deleteHolidayConfirmed = () => {
                 toast.success('Dzień wolny został pomyślnie zarchiwizowany.');
                 isAlertDialogOpen.value = false;
                 holidayToDelete.value = null;
+                fetchTableData();
             },
             onError: (errors) => {
                 toast.error(errors.message || 'Wystąpił błąd podczas archiwizacji.');
@@ -56,7 +57,10 @@ const deleteHolidayConfirmed = () => {
 
 const restoreHoliday = (holidayId: number) => {
     router.post(route('holidays.restore', holidayId), {}, {
-        onSuccess: () => toast.success('Dzień wolny został pomyślnie przywrócony.'),
+        onSuccess: () => {
+            toast.success('Dzień wolny został pomyślnie przywrócony.');
+            fetchTableData();
+        },
         onError: () => toast.error('Wystąpił błąd podczas przywracania.'),
     });
 };
@@ -153,12 +157,12 @@ const columns: ColumnDef<Holiday>[] = [
     },
     {
         id: 'actions',
-        header: 'Akcje',
+        header: () => h('div', { class: 'w-full text-right' }, 'Akcje'),
         cell: ({ row }) => {
             const holiday = row.original;
-            return h('div', { class: 'flex justify-end space-x-2 text-right' }, [
+            return h('div', { class: 'flex justify-end space-x-2' }, [
                 holiday.deleted_at === null
-                    ? h(Button, { variant: 'outline', size: 'sm' }, { default: () => 'Edytuj' })
+                    ? h(Link, { href: route('holidays.edit', holiday.id ) }, () => h(Button, { variant: 'outline', size: 'sm' }, { default: () => 'Edytuj' }))
                     : null,
                 holiday.deleted_at !== null
                     ? h(Button, { variant: 'outline', size: 'sm', onClick: () => restoreHoliday(holiday.id) }, { default: () => 'Przywróć' })
