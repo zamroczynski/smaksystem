@@ -33,25 +33,54 @@ class HolidayService
     {
         $instances = collect();
 
+        $calculatedDatesMap = collect();
+
+        // --- STEP 1: Calculate the dates of independent holidays (fixed and Easter-based) ---
         foreach ($definitions as $definition) {
             $date = null;
 
             if ($definition->day_month) {
                 $date = Carbon::createFromFormat('m-d-Y', substr($definition->day_month, 0, 2) . '-' . substr($definition->day_month, 3, 2) . '-' . $year)->startOfDay();
-            } elseif ($definition->calculation_rule) {
-                $rule = $definition->calculation_rule;
-                if (isset($rule['base']) && $rule['base'] === 'easter') {
-                    $easter = $this->getEasterSunday($year);
-                    $date = (clone $easter)->addDays($rule['offset'] ?? 0);
-                }
+            } elseif (
+                isset($definition->calculation_rule['base_type']) &&
+                $definition->calculation_rule['base_type'] === 'event' &&
+                $definition->calculation_rule['base_event'] === 'easter'
+            ) {
+                $easter = $this->getEasterSunday($year);
+                $date = (clone $easter)->addDays($definition->calculation_rule['offset'] ?? 0);
             }
 
             if ($date) {
-                $instances->push([
-                    'name' => $definition->name,
-                    'date' => $date->toDateString(),
-                ]);
+                $calculatedDatesMap->put($definition->id, $date);
             }
+        }
+
+        // --- STEP 2: Calculate the dates of holidays that depend on other holidays ---
+        foreach ($definitions as $definition) {
+            if (
+                isset($definition->calculation_rule['base_type']) &&
+                $definition->calculation_rule['base_type'] === 'holiday'
+            ) {
+                $rule = $definition->calculation_rule;
+                $baseHolidayId = $rule['base_holiday_id'] ?? null;
+
+                if ($baseHolidayId && $calculatedDatesMap->has($baseHolidayId)) {
+                    $baseDate = $calculatedDatesMap->get($baseHolidayId);
+                    $date = (clone $baseDate)->addDays($rule['offset'] ?? 0);
+
+                    $calculatedDatesMap->put($definition->id, $date);
+                }
+            }
+        }
+
+        // --- STEP 3: Get your final data ready to save ---
+        foreach ($definitions as $definition) {
+             if ($calculatedDatesMap->has($definition->id)) {
+                 $instances->push([
+                    'name' => $definition->name,
+                    'date' => $calculatedDatesMap->get($definition->id)->toDateString(),
+                ]);
+             }
         }
 
         return $instances;

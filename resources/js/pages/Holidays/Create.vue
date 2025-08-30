@@ -10,15 +10,20 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'vue-sonner';
 
-defineProps<HolidayCreateProps>();
+const props = defineProps<HolidayCreateProps>();
 
 const holidayType = ref<'single' | 'fixed' | 'movable' | null>(null);
 
 const form = useForm({
     name: '',
-    date: null as string | null, 
+    date: null as string | null,
     day_month: null as string | null,
-    calculation_rule: null as { base: string; offset: number; } | null,
+    calculation_rule: null as {
+        base_type: 'event' | 'holiday';
+        base_event: 'easter' | null;
+        base_holiday_id: number | null;
+        offset: number;
+    } | null,
 });
 
 watch(holidayType, (newType) => {
@@ -28,9 +33,28 @@ watch(holidayType, (newType) => {
     form.calculation_rule = null;
 
     if (newType === 'movable') {
-        form.calculation_rule = { base: 'easter', offset: 0 };
+        form.calculation_rule = {
+            base_type: 'event',
+            base_event: 'easter',
+            base_holiday_id: null,
+            offset: 0,
+        };
     }
 });
+
+const handleBaseHolidayChange = (value: string | number) => {
+    if (form.calculation_rule) {
+        if (value === 'easter') {
+            form.calculation_rule.base_type = 'event';
+            form.calculation_rule.base_event = 'easter';
+            form.calculation_rule.base_holiday_id = null;
+        } else {
+            form.calculation_rule.base_type = 'holiday';
+            form.calculation_rule.base_event = null;
+            form.calculation_rule.base_holiday_id = Number(value);
+        }
+    }
+};
 
 const submit = () => {
     form.post(route('holidays.store'), {
@@ -92,26 +116,27 @@ const submit = () => {
                     </div>
 
                     <div v-if="holidayType === 'movable' && form.calculation_rule" class="space-y-4 rounded-md border p-4">
-                         <h4 class="font-medium text-sm text-gray-600 dark:text-gray-300">Reguła obliczeniowa</h4>
-                         <div>
+                        <h4 class="font-medium text-sm text-gray-600 dark:text-gray-300">Reguła obliczeniowa</h4>
+                        <div>
                             <Label>Święto bazowe</Label>
-                            <Select v-model="form.calculation_rule.base">
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
+                            <Select :model-value="form.calculation_rule.base_event || form.calculation_rule.base_holiday_id" @update:model-value="handleBaseHolidayChange">
+                                <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="easter">Wielkanoc</SelectItem>
+                                    <SelectItem value="easter">Wielkanoc (Algorytm)</SelectItem>
+                                    <SelectItem v-for="base in props.baseHolidays" :key="base.id" :value="base.id">
+                                        {{ base.name }}
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
-                         </div>
-                         <div>
+                        </div>
+                        <div>
                             <Label for="offset">Przesunięcie (w dniach)</Label>
                             <Input id="offset" type="number" v-model.number="form.calculation_rule.offset" />
                             <p class="text-xs text-gray-500 mt-1">
-                                Użyj wartości dodatniej (np. 1 dla Poniedziałku Wielkanocnego) lub ujemnej. 0 oznacza sam dzień Wielkanocy.
+                                Użyj wartości dodatniej (np. 14) lub ujemnej. 0 oznacza ten sam dzień co święto bazowe.
                             </p>
                             <p v-if="form.errors.calculation_rule" class="text-sm text-red-500 mt-1">{{ form.errors.calculation_rule }}</p>
-                         </div>
+                        </div>
                     </div>
 
                     <div class="flex justify-end pt-4">

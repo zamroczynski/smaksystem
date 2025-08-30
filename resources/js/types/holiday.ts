@@ -5,6 +5,11 @@ interface HolidaysData extends PaginatedData {
     data: Holiday[]
 }
 
+interface BaseHoliday {
+    id: number;
+    name: string;
+}
+
 export interface HolidayIndexProps extends PageProps {
     holidays: HolidaysData;
     filter: string | null;
@@ -14,5 +19,5 @@ export interface HolidayIndexProps extends PageProps {
 }
 
 export interface HolidayCreateProps extends PageProps {
-    tempData: undefined;
+    baseHolidays: BaseHoliday[];
 }

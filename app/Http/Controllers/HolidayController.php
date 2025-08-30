@@ -49,7 +49,13 @@ class HolidayController extends Controller
      */
     public function create()
     {
+        $baseHolidays = Holiday::whereNotNull('day_month')
+        ->select('id', 'name')
+        ->orderBy('name')
+        ->get();
+
         return Inertia::render('Holidays/Create', [
+            'baseHolidays' => $baseHolidays,
             'breadcrumbs' => BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
                 ->add('Dni Wolne', route('holidays.index'))
                 ->add('Dodaj nowy', route('holidays.create'))
