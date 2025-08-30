@@ -7,9 +7,12 @@ use App\Http\Requests\StoreScheduleRequest;
 use App\Http\Requests\UpdateScheduleRequest;
 use App\Models\Schedule;
 use App\Models\ShiftTemplate;
+use App\Models\HolidayInstance;
 use App\Services\ScheduleService;
+use App\Services\HolidayService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class ScheduleController extends Controller
 {
@@ -62,9 +65,23 @@ class ScheduleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreScheduleRequest $request)
+    public function store(StoreScheduleRequest $request, HolidayService $holidayService)
     {
-        $schedule = Schedule::create($request->validated());
+        $validatedData = $request->validated();
+
+        try {
+            $targetYear = Carbon::parse($validatedData['period_start_date'])->year;
+
+            $holidaysExist = HolidayInstance::whereYear('date', $targetYear)->exists();
+
+            if (! $holidaysExist) {
+                $holidayService->generateForYear($targetYear);
+            }
+        } catch (\Exception $e) {
+            return back()->with('error', 'Wystąpił błąd podczas przygotowywania dni wolnych. Spróbuj ponownie.');
+        }
+
+        $schedule = Schedule::create($validatedData);
         if ($request->has('selected_shift_templates') && is_array($request->selected_shift_templates)) {
             $schedule->shiftTemplates()->attach($request->selected_shift_templates);
         }

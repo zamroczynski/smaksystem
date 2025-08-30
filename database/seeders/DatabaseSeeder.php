@@ -13,11 +13,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        $this->call(PermissionSeeder::class);
-        $this->call(RoleSeeder::class);
-        $this->call(ShiftTemplateSeeder::class);
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            ShiftTemplateSeeder::class,
+            NonWorkingDaySeeder::class
+        ]);
 
         $user = User::factory()->create([
             'login' => 'admin',
