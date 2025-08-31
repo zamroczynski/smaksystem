@@ -118,7 +118,7 @@ const columns: ColumnDef<typeof props.shiftTemplates.data[number]>[] = [
     },
     {
         id: 'actions',
-        header: 'Akcje',
+        header: () => h('div', { class: 'w-full text-right' }, 'Akcje'),
         enableSorting: false,
         cell: ({ row }) => {
             const st = row.original;

@@ -136,7 +136,7 @@ const columns: ColumnDef<typeof props.roles.data[number]>[] = [
     },
     {
         id: 'actions',
-        header: 'Akcje',
+        header: () => h('div', { class: 'w-full text-right' }, 'Akcje'),
         enableSorting: false,
         cell: ({ row }) => {
             const role = row.original;
