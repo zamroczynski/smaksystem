@@ -5,21 +5,18 @@ namespace App\Http\Controllers;
 use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\UserSearchRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class UsersController extends Controller
 {
-    protected $userService;
-
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
+    public function __construct(private UserService $userService) {}
 
     /**
      * Display a listing of the users.
@@ -137,6 +134,21 @@ class UsersController extends Controller
         }
 
         return to_route('users.index')->with('error', 'Nie udało się przywrócić użytkownika.');
+    }
+
+    /**
+     * Search for users based on a query string.
+     *
+     * @param  Request  $request
+     */
+    public function search(UserSearchRequest $request): JsonResource
+    {
+        $validated = $request->validated();
+        $query = $validated['query'] ?? '';
+
+        $users = $this->userService->searchForCombobox($query);
+
+        return new JsonResource($users);
     }
 
     /**

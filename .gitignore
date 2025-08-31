@@ -23,3 +23,5 @@ yarn-error.log
 /.vscode
 /.zed
 stats.html
+supervisord.log
+supervisord.pid

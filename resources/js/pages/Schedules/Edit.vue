@@ -3,9 +3,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import EmployeeCombobox from '@/components/EmployeeCombobox.vue';
 import { toast } from 'vue-sonner';
 import { ref, watch, computed } from 'vue';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -60,7 +60,7 @@ const deactivateEdit = () => {
     editingCell.value = null;
 };
 
-// Funkcja do dzielenia tablicy na kawałki (chunks)
+// Function for splitting an array into chunks
 const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
     const chunks: T[][] = [];
     for (let i = 0; i < array.length; i += chunkSize) {
@@ -69,7 +69,7 @@ const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
     return chunks;
 };
 
-// Dzielenie dni miesiąca na 7-dniowe bloki
+// Dividing the days of the month into 7-day blocks
 const monthDayChunks = computed(() => {
     return chunkArray(props.monthDays, 7);
 });
@@ -77,7 +77,7 @@ const monthDayChunks = computed(() => {
 const getAssignedUser = (shiftTemplateId: number, date: string, position: number): string | null => {
     const key = `${shiftTemplateId}_${date}_${position}`;
     const assignedId = form.assignments[key];
-    return assignedId !== undefined && assignedId !== null ? String(assignedId) : "-1";
+    return assignedId !== undefined && assignedId !== null ? String(assignedId) : null;
 };
 
 const setAssignment = (shiftTemplateId: number, date: string, position: number, userId: string | null) => {
@@ -105,7 +105,7 @@ const getAssignmentError = (shiftTemplateId: number, date: string, position: num
     for (const errorKey in form.errors) {
         if (errorKey.startsWith('assignments.') && errorKey.endsWith('.user_id')) {
             const assignmentsAsArray = Object.entries(form.assignments)
-                .filter(([key, value]) => value !== null && value !== "-1" && key===key)
+                .filter(([key, value]) => value !== null && value !== "-1" && key === key)
                 .map(([key, value]) => {
                     const parts = key.split('_');
                     return {
@@ -204,6 +204,7 @@ const submit = () => {
 </script>
 
 <template>
+
     <Head :title="`Edycja grafiku: ${props.schedule.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -214,7 +215,10 @@ const submit = () => {
                         Edycja Grafiku Pracy: {{ props.schedule.name }}
                     </CardTitle>
                     <CardDescription>
-                        Miesiąc: {{ new Date(props.schedule.period_start_date).toLocaleString('pl-PL', { month: 'long', year: 'numeric' }) }}
+                        Miesiąc: {{ new Date(props.schedule.period_start_date).toLocaleString('pl-PL', {
+                            month: 'long',
+                            year: 'numeric'
+                        }) }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -225,7 +229,8 @@ const submit = () => {
                                 <Table class="min-w-full">
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead class="w-[150px] sticky left-0 bg-white dark:bg-gray-800 z-10">Zmiana</TableHead>
+                                            <TableHead class="w-[150px] sticky left-0 bg-white dark:bg-gray-800 z-10">
+                                                Zmiana</TableHead>
                                             <template v-for="day in dayChunk" :key="day.date">
                                                 <TableHead :class="{
                                                     'bg-red-100 dark:bg-red-900': day.is_sunday || day.is_holiday,
@@ -237,64 +242,51 @@ const submit = () => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        <template v-for="shiftTemplate in props.assignedShiftTemplates" :key="shiftTemplate.id">
+                                        <template v-for="shiftTemplate in props.assignedShiftTemplates"
+                                            :key="shiftTemplate.id">
                                             <TableRow>
-                                                <TableCell class="font-medium sticky left-0 bg-white dark:bg-gray-800 z-10">
-                                                    {{ shiftTemplate.name }} ({{ shiftTemplate.time_from.substring(0, 5) }} - {{ shiftTemplate.time_to.substring(0, 5) }})
-                                                </TableCell>
                                                 <TableCell
-                                                    v-for="day in dayChunk"
-                                                    :key="day.date"
-                                                    :class="{
-                                                        'bg-red-50 dark:bg-red-950': day.is_sunday || day.is_holiday,
-                                                        'bg-yellow-50 dark:bg-yellow-950': day.is_saturday,
-                                                    }"
-                                                >
-                                                    <div v-for="pos in shiftTemplate.required_staff_count" :key="pos" class="mb-2 last:mb-0">
-                                                        <div
-                                                            v-if="!isEditing(shiftTemplate.id, day.date, pos)"
-                                                            @click="activateEdit(shiftTemplate.id, day.date, pos)"
-                                                            class="p-2 border rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                                                            :class="cn(
-                                                                getAssignmentError(shiftTemplate.id, day.date, pos) ? 'border-red-500' : 'border-gray-200 dark:border-gray-700',
-                                                                getAvailabilityClass(parseInt(getAssignedUser(shiftTemplate.id, day.date, pos) || '-1'), day.date)
-                                                            )"
-                                                        >
-                                                            {{ users.find(u => String(u.id) === getAssignedUser(shiftTemplate.id, day.date, pos))?.name || 'Brak' }}
-                                                        </div>
+                                                    class="font-medium sticky left-0 bg-white dark:bg-gray-800 z-10">
+                                                    {{ shiftTemplate.name }} ({{ shiftTemplate.time_from.substring(0, 5)
+                                                    }} - {{ shiftTemplate.time_to.substring(0, 5) }})
+                                                </TableCell>
+                                                <TableCell v-for="day in dayChunk" :key="day.date" :class="{
+                                                    'bg-red-50 dark:bg-red-950': day.is_sunday || day.is_holiday,
+                                                    'bg-yellow-50 dark:bg-yellow-950': day.is_saturday,
+                                                }">
+                                                    <div v-for="pos in shiftTemplate.required_staff_count" :key="pos"
+                                                        class="mb-2 last:mb-0 min-w-16">
+                                                        <div class="min-h-10">
+                                                            <div v-if="!isEditing(shiftTemplate.id, day.date, pos)"
+                                                                @click="activateEdit(shiftTemplate.id, day.date, pos)"
+                                                                class="flex items-center w-full h-10 px-3 py-2 text-sm border rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                                :class="cn(
+                                                                    getAssignmentError(shiftTemplate.id, day.date, pos) ? 'border-red-500' : 'border-gray-200 dark:border-gray-700',
+                                                                    getAvailabilityClass(parseInt(getAssignedUser(shiftTemplate.id, day.date, pos) || '-1'), day.date)
+                                                                )">
+                                                                {{users.find(u => String(u.id) ===
+                                                                    getAssignedUser(shiftTemplate.id, day.date, pos))?.name
+                                                                    || 'Brak'}}
+                                                            </div>
 
-                                                        <Select
-                                                            v-else
-                                                            :model-value="getAssignedUser(shiftTemplate.id, day.date, pos)"
-                                                            @update:model-value="val => setAssignment(shiftTemplate.id, day.date, pos, val === null ? null : String(val))"
-                                                            @update:open="open => !open && deactivateEdit()"
-                                                            :default-open="true"
-                                                        >
-                                                            <SelectTrigger :class="cn(
-                                                                'w-full',
-                                                                getAssignmentError(shiftTemplate.id, day.date, pos) ? 'border-red-500' : ''
-                                                            )">
-                                                                <SelectValue :placeholder="`Wybierz (${pos})`">
-                                                                    {{ users.find(u => String(u.id) === getAssignedUser(shiftTemplate.id, day.date, pos))?.name || `Wybierz (${pos})` }}
-                                                                </SelectValue>
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="-1">
-                                                                    Brak
-                                                                </SelectItem>
-                                                                <SelectItem
-                                                                    v-for="user in props.users"
-                                                                    :key="user.id"
-                                                                    :value="String(user.id)"
-                                                                    :class="getAvailabilityClass(user.id, day.date)"
-                                                                >
-                                                                    {{ user.name }}
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <div v-if="getAssignmentError(shiftTemplate.id, day.date, pos)"
-                                                            class="text-red-500 text-xs mt-1">
-                                                            {{ getAssignmentError(shiftTemplate.id, day.date, pos) }}
+                                                            <template v-else>
+                                                                <EmployeeCombobox
+                                                                    :model-value="getAssignedUser(shiftTemplate.id, day.date, pos) ? parseInt(getAssignedUser(shiftTemplate.id, day.date, pos)!) : null"
+                                                                    :initial-employee="users.find(u => String(u.id) === getAssignedUser(shiftTemplate.id, day.date, pos))
+                                                                        ? { value: users.find(u => String(u.id) === getAssignedUser(shiftTemplate.id, day.date, pos))!.id, label: users.find(u => String(u.id) === getAssignedUser(shiftTemplate.id, day.date, pos))!.name }
+                                                                        : null
+                                                                        "
+                                                                    @update:model-value="val => setAssignment(shiftTemplate.id, day.date, pos, val === null ? null : String(val))"
+                                                                    :start-open="true" :class="cn(
+                                                                        'w-full',
+                                                                        getAssignmentError(shiftTemplate.id, day.date, pos) ? 'border-red-500 focus-visible:ring-red-500' : ''
+                                                                    )" />
+                                                                <div v-if="getAssignmentError(shiftTemplate.id, day.date, pos)"
+                                                                    class="text-red-500 text-xs mt-1">
+                                                                    {{ getAssignmentError(shiftTemplate.id, day.date,
+                                                                        pos) }}
+                                                                </div>
+                                                            </template>
                                                         </div>
                                                     </div>
                                                 </TableCell>
@@ -309,7 +301,8 @@ const submit = () => {
                             <Button variant="outline" type="button" as-child>
                                 <Link :href="route('schedules.index')">Anuluj</Link>
                             </Button>
-                            <Button type="submit" :disabled="form.processing || Object.values(localValidationErrors).some(error => error !== null)">
+                            <Button type="submit"
+                                :disabled="form.processing || Object.values(localValidationErrors).some(error => error !== null)">
                                 {{ form.processing ? 'Zapisywanie...' : 'Zapisz Zmiany' }}
                             </Button>
                         </div>
