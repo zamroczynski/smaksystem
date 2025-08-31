@@ -277,7 +277,8 @@ const submit = () => {
                                                                         : null
                                                                         "
                                                                     @update:model-value="val => setAssignment(shiftTemplate.id, day.date, pos, val === null ? null : String(val))"
-                                                                    :start-open="true" :class="cn(
+                                                                    :start-open="true" :preferences="props.preferences"
+                                                                    :current-date="day.date" :class="cn(
                                                                         'w-full',
                                                                         getAssignmentError(shiftTemplate.id, day.date, pos) ? 'border-red-500 focus-visible:ring-red-500' : ''
                                                                     )" />
