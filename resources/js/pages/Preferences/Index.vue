@@ -2,9 +2,10 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type PreferenceIndexProps } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ref, watch, h, defineAsyncComponent } from 'vue';
 import { toast } from 'vue-sonner';
+import { ColumnDef } from '@tanstack/vue-table';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Pagination from '@/components/Pagination.vue';
@@ -18,20 +19,23 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref, watch } from 'vue';
 
+const DataTable = defineAsyncComponent(() => import('@/components/DataTable.vue'));
 const props = defineProps<PreferenceIndexProps>();
 
+const currentPage = ref(props.preferences.current_page);
+const currentGlobalFilter = ref(props.filter);
 const showInactiveOrDeleted = ref(props.show_inactive_or_deleted);
 
 watch(showInactiveOrDeleted, (newValue) => {
-    router.get(route('preferences.index', { show_inactive_or_deleted: newValue }), {}, {
+    router.get(route('preferences.index', { show_inactive_or_deleted: newValue, page: 1 }), {}, {
         preserveState: true,
         preserveScroll: true,
         only: ['preferences', 'show_inactive_or_deleted'],
     });
 });
 
+const form = useForm({});
 const isAlertDialogOpen = ref(false);
 const preferenceToDeleteId = ref<number | null>(null);
 
@@ -42,41 +46,106 @@ const confirmDelete = (preferenceId: number) => {
 
 const deletePreferenceConfirmed = () => {
     if (preferenceToDeleteId.value !== null) {
-        useForm({}).delete(route('preferences.destroy', preferenceToDeleteId.value), {
+        form.delete(route('preferences.destroy', preferenceToDeleteId.value), {
             onSuccess: () => {
                 toast.success('Preferencja została pomyślnie usunięta.');
                 isAlertDialogOpen.value = false;
-                preferenceToDeleteId.value = null;
-                router.get(route('preferences.index', { show_inactive_or_deleted: showInactiveOrDeleted.value }), {}, {
-                    preserveState: true,
-                    preserveScroll: true,
-                    only: ['preferences', 'show_inactive_or_deleted'],
-                });
             },
-            onError: () => {
-                toast.error('Wystąpił błąd podczas usuwania preferencji.');
-                isAlertDialogOpen.value = false;
-                preferenceToDeleteId.value = null;
-            },
+            onError: () => toast.error('Wystąpił błąd podczas usuwania preferencji.'),
         });
     }
 };
 
 const restorePreference = (preferenceId: number) => {
     router.post(route('preferences.restore', preferenceId), {}, {
-        onSuccess: () => {
-            toast.success('Preferencja została pomyślnie przywrócona.');
-            router.get(route('preferences.index', { show_inactive_or_deleted: showInactiveOrDeleted.value }), {}, {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['preferences', 'show_inactive_or_deleted'],
-            });
-        },
-        onError: () => {
-            toast.error('Wystąpił błąd podczas przywracania preferencji.');
-        },
+        onSuccess: () => toast.success('Preferencja została pomyślnie przywrócona.'),
+        onError: () => toast.error('Wystąpił błąd podczas przywracania preferencji.'),
     });
 };
+
+const fetchTableData = () => {
+    router.get(
+        route('preferences.index'),
+        {
+            page: currentPage.value,
+            filter: currentGlobalFilter.value,
+            show_inactive_or_deleted: showInactiveOrDeleted.value,
+            sort: props.sort_by,
+            direction: props.sort_direction,
+        },
+        { preserveState: true, preserveScroll: true, only: ['preferences', 'show_inactive_or_deleted', 'sort_by', 'sort_direction', 'filter'] }
+    );
+};
+
+const handlePageUpdate = (newPage: number) => {
+    currentPage.value = newPage;
+    fetchTableData();
+};
+
+const handleFilterUpdate = (newFilter: string) => {
+    currentGlobalFilter.value = newFilter;
+    currentPage.value = 1;
+    fetchTableData();
+};
+
+const handleSortUpdate = (sortData: { column: string, direction: string }) => {
+    router.get(
+        route('preferences.index'),
+        {
+            page: 1,
+            filter: currentGlobalFilter.value,
+            show_inactive_or_deleted: showInactiveOrDeleted.value,
+            sort: sortData.column,
+            direction: sortData.direction,
+        },
+        { preserveState: true, preserveScroll: true, only: ['preferences', 'show_inactive_or_deleted', 'sort_by', 'sort_direction', 'filter'] }
+    );
+};
+
+const columns: ColumnDef<typeof props.preferences.data[number]>[] = [
+    { accessorKey: 'id', header: 'ID', enableSorting: true },
+    { accessorKey: 'date_from', header: 'Data od', enableSorting: true },
+    { accessorKey: 'date_to', header: 'Data do', enableSorting: true },
+    { accessorKey: 'description', header: 'Opis', enableSorting: true },
+    {
+        accessorKey: 'availability',
+        header: 'Dyspozycja',
+        enableSorting: false,
+        cell: ({ row }) => {
+            const isAvailable = row.original.availability;
+            const text = isAvailable ? 'Chcę pracować' : 'Nie mogę pracować';
+            const colorClass = isAvailable ? 'text-green-600' : 'text-red-600';
+            return h('span', { class: colorClass + ' font-semibold' }, text);
+        },
+    },
+    {
+        id: 'status',
+        header: 'Status',
+        enableSorting: false,
+        cell: ({ row }) => {
+            const pref = row.original;
+            if (pref.deleted_at) return h('span', { class: 'text-red-500 font-semibold' }, 'Usunięta');
+            if (pref.is_active) return h('span', { class: 'text-green-500 font-semibold' }, 'Aktywna');
+            return h('span', { class: 'text-gray-500 font-semibold' }, 'Nieaktywna');
+        },
+    },
+    {
+        id: 'actions',
+        header: 'Akcje',
+        enableSorting: false,
+        cell: ({ row }) => {
+            const pref = row.original;
+            const actions = [];
+            if (pref.is_active && !pref.deleted_at) {
+                actions.push(h(Link, { href: route('preferences.edit', pref.id) }, () => h(Button, { variant: 'outline', size: 'sm' }, () => 'Edytuj')));
+                actions.push(h(Button, { variant: 'destructive', size: 'sm', onClick: () => confirmDelete(pref.id) }, () => 'Wyłącz'));
+            } else if (pref.deleted_at) {
+                actions.push(h(Button, { variant: 'outline', size: 'sm', onClick: () => restorePreference(pref.id) }, () => 'Przywróć'));
+            }
+            return h('div', { class: 'flex justify-end space-x-2' }, actions);
+        },
+    },
+];
 </script>
 
 <template>
@@ -95,59 +164,11 @@ const restorePreference = (preferenceId: number) => {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-[100px]">ID</TableHead>
-                                <TableHead>Data od</TableHead>
-                                <TableHead>Data do</TableHead>
-                                <TableHead>Opis</TableHead>
-                                <TableHead class="text-center">Dyspozycja</TableHead> 
-                                <TableHead class="text-center">Status</TableHead>
-                                <TableHead class="text-right">Akcje</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="preference in props.preferences.data" :key="preference.id">
-                                <TableCell class="font-medium">{{ preference.id }}</TableCell>
-                                <TableCell>{{ preference.date_from }}</TableCell>
-                                <TableCell>{{ preference.date_to }}</TableCell>
-                                <TableCell>{{ preference.description || 'Brak opisu' }}</TableCell>
-                                <TableCell class="text-center"> <span v-if="preference.availability"
-                                        class="text-green-600 font-semibold">Chce pracować</span>
-                                    <span v-else class="text-red-600 font-semibold">Nie mogę pracować</span>
-                                </TableCell>
-                                <TableCell class="text-center">
-                                        <span v-if="preference.deleted_at" class="text-red-500 font-semibold">Usunięta</span>
-                                        <span v-else-if="preference.is_active" class="text-green-500 font-semibold">Aktywna</span>
-                                        <span v-else class="text-gray-500 font-semibold">Nieaktywna (data minęła)</span>
-                                    </TableCell>
-                                <TableCell class="text-right flex justify-end space-x-2">
-                                    <template v-if="preference.is_active">
-                                        <Button as-child variant="outline" size="sm">
-                                            <Link :href="route('preferences.edit', preference.id)">Edytuj</Link>
-                                        </Button>
-                                        <Button variant="destructive" size="sm" @click="confirmDelete(preference.id)">
-                                            Wyłącz
-                                        </Button>
-                                    </template>
-                                    <template v-else-if="preference.deleted_at !== null && showInactiveOrDeleted">
-                                        <Button variant="outline" size="sm" @click="restorePreference(preference.id)">
-                                            Przywróć
-                                        </Button>
-                                    </template>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow v-if="props.preferences.data.length === 0">
-                                <TableCell colspan="5" class="text-center text-gray-500">Brak preferencji do
-                                    wyświetlenia.</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-
-                <Pagination :links="props.preferences.links" class="mt-6" />
+                <DataTable :columns="columns" :data="props.preferences.data"
+                    :current-page="props.preferences.current_page" :last-page="props.preferences.last_page"
+                    :total="props.preferences.total" :per-page="props.preferences.per_page"
+                    @update:page="handlePageUpdate" @update:filter="handleFilterUpdate" @update:sort="handleSortUpdate"
+                    :sort-by="props.sort_by ?? null" :sort-direction="props.sort_direction ?? null" />
 
                 <div class="mt-6">
                     <Button as-child class="w-full">

@@ -5,63 +5,39 @@ namespace App\Http\Controllers;
 use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StorePreferenceRequest;
 use App\Models\Preference;
-use Carbon\Carbon;
+use App\Services\PreferenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class PreferenceController extends Controller
 {
+    public function __construct(private PreferenceService $preferenceService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        $showInactiveOrDeleted = $request->boolean('show_inactive_or_deleted');
-
-        $preferencesQuery = $user->preferences()->orderBy('date_from', 'desc');
-
-        if ($showInactiveOrDeleted) {
-            $preferencesQuery->withTrashed()
-                ->where(function ($query) {
-                    $query->whereDate('date_to', '<', Carbon::today())
-                        ->orWhereNotNull('deleted_at');
-                });
-        } else {
-            $preferencesQuery->whereDate('date_to', '>=', Carbon::today())
-                ->whereNull('deleted_at');
-        }
-
-        $preferences = $preferencesQuery->paginate(10)->appends([
-            'show_inactive_or_deleted' => $showInactiveOrDeleted,
-        ]);
-
-        $preferences->through(function ($preference) {
-            $dateTo = Carbon::parse($preference->date_to);
-
-            return [
-                'id' => $preference->id,
-                'description' => $preference->description,
-                'date_from' => $preference->date_from->format('Y-m-d'),
-                'date_to' => $preference->date_to->format('Y-m-d'),
-                'is_active' => $dateTo->gte(Carbon::today()) && $preference->deleted_at === null,
-                'deleted_at' => $preference->deleted_at,
-                'availability' => $preference->availability,
-            ];
-        });
-
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Moje Preferencje', route('preferences.index'))
-            ->get();
+        $options = [
+            'show_inactive_or_deleted' => $request->boolean('show_inactive_or_deleted'),
+            'filter' => $request->input('filter'),
+            'sort' => $request->input('sort', 'date_from'),
+            'direction' => $request->input('direction', 'desc'),
+        ];
+        
+        $preferences = $this->preferenceService->getPaginatedPreferences($options);
 
         return Inertia::render('Preferences/Index', [
             'preferences' => $preferences,
-            'show_inactive_or_deleted' => $showInactiveOrDeleted,
+            'show_inactive_or_deleted' => $options['show_inactive_or_deleted'],
             'flash' => session('flash'),
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getPreferencesBreadcrumbs(),
+            'filter' => $options['filter'],
+            'sort_by' => $options['sort'],
+            'sort_direction' => $options['direction'],
         ]);
     }
 
@@ -70,13 +46,8 @@ class PreferenceController extends Controller
      */
     public function create()
     {
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Moje Preferencje', route('preferences.index'))
-            ->add('Dodaj Preferencje', route('preferences.create'))
-            ->get();
-
         return Inertia::render('Preferences/Create', [
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getPreferencesBreadcrumbs('Dodaj Preferencje', route('preferences.create')),
         ]);
     }
 
@@ -110,11 +81,6 @@ class PreferenceController extends Controller
             return to_route('preferences.index')->with('error', 'Nie masz uprawnień do edycji tej preferencji.');
         }
 
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Moje Preferencje', route('preferences.index'))
-            ->add('Edytuj Preferencję', route('preferences.edit', $preference))
-            ->get();
-
         return Inertia::render('Preferences/Edit', [
             'preference' => [
                 'id' => $preference->id,
@@ -123,7 +89,7 @@ class PreferenceController extends Controller
                 'description' => $preference->description,
                 'availability' => $preference->availability,
             ],
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getPreferencesBreadcrumbs('Edytuj Preferencję', route('preferences.edit', $preference)),
         ]);
     }
 
@@ -183,5 +149,20 @@ class PreferenceController extends Controller
         $preference->restore();
 
         return to_route('preferences.index')->with('success', 'Preferencja grafiku została pomyślnie przywrócona.');
+    }
+
+    /**
+     * Generates breadcrumbs for preference management.
+     */
+    protected function getPreferencesBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
+    {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Moje Preferencje', route('preferences.index'));
+
+        if ($pageTitle && $pageRoute) {
+            $breadcrumbs->add($pageTitle, $pageRoute);
+        }
+
+        return $breadcrumbs->get();
     }
 }

@@ -1,27 +1,22 @@
-import { type BreadcrumbItem, Links, Flash } from '@/types';
-import { type Preference } from '@/types/models';
+import type {  BreadcrumbItem, PaginatedData, PageProps } from '@/types';
+import type {  Preference } from '@/types/models';
 
-export interface PreferenceIndexProps {
-    preferences: {
-        data: Preference[];
-        links: Links[];
-        current_page: number;
-        from: number;
-        last_page: number;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    flash?: Flash;
+interface PreferenceData extends PaginatedData {
+    data: Preference[];
+}
+
+export interface PreferenceIndexProps extends PageProps {
+    preferences: PreferenceData;
     show_inactive_or_deleted: boolean;
-    breadcrumbs: BreadcrumbItem[]
+    filter?: string | null;
+    sort_by?: string | null;
+    sort_direction?: 'asc' | 'desc' | null;
 }
 
 export interface PreferenceCreateProps {
-    breadcrumbs: BreadcrumbItem[]
+    breadcrumbs: BreadcrumbItem[];
 }
 
-export interface PreferenceEditProps {
+export interface PreferenceEditProps extends PageProps {
     preference: Preference;
-    breadcrumbs: BreadcrumbItem[]
 }
