@@ -1,7 +1,7 @@
 <!-- resources/js/Components/EmployeeCombobox.vue -->
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { Ref } from 'vue'
+import type { Ref, PropType } from 'vue'
 import axios from 'axios'
 import { Check, ChevronsUpDown } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
@@ -17,18 +17,36 @@ import {
   ComboboxList,
   ComboboxTrigger,
 } from '@/components/ui/combobox';
-// import { type AcceptableValue } from 'reka-ui'
+
+type Preferences = Record<number, Record<string, boolean>>;
 
 interface Employee {
   value: number
   label: string 
 }
 
-const props = defineProps<{
-    modelValue: number | null
-    initialEmployee?: Employee | null
-    startOpen?: boolean
-}>()
+const props = defineProps({
+    modelValue: {
+        type: Number as PropType<number | null>,
+        required: true
+    },
+    initialEmployee: {
+        type: Object as PropType<Employee | null>,
+        required: false
+    },
+    startOpen: {
+        type: Boolean,
+        required: false
+    },
+    preferences: {
+        type: Object as PropType<Preferences>,
+        required: true
+    },
+    currentDate: {
+        type: String,
+        required: true
+    }
+})
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -86,6 +104,25 @@ const fetchEmployees = async () => {
     }
 }
 
+const getAvailabilityClass = (userId: number): string => {
+    if (props.preferences[userId]) {
+        const availability = props.preferences[userId][props.currentDate];
+        if (availability === true) {
+            return 'text-green-600 font-semibold data-[highlighted]:text-green-600';
+        } else if (availability === false) {
+            return 'text-red-600 font-semibold data-[highlighted]:text-red-600';
+        }
+    }
+    return '';
+};
+
+const triggerClass = computed(() => {
+    if (selectedEmployee.value) {
+        return getAvailabilityClass(selectedEmployee.value.value);
+    }
+    return '';
+});
+
 watch(open, (isOpen) => {
     if (isOpen && options.value.length <= 1) {
         fetchEmployees();
@@ -106,7 +143,7 @@ watch(searchTerm, () => {
   >
     <ComboboxAnchor>
       <ComboboxTrigger as-child>
-        <Button variant="outline" class="w-full justify-between">
+        <Button variant="outline" class="w-full justify-between" :class="triggerClass">
           {{ displayLabel }}
           <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -125,6 +162,7 @@ watch(searchTerm, () => {
           v-for="option in options"
           :key="option.value"
           :value="option"
+          :class="getAvailabilityClass(option.value)"
         >
           {{ option.label }}
           <ComboboxItemIndicator>
