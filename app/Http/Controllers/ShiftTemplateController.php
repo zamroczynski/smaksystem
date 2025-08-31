@@ -12,9 +12,7 @@ use Inertia\Inertia;
 
 class ShiftTemplateController extends Controller
 {
-    public function __construct(private ShiftTemplateService $shiftTemplateService)
-    {
-    }
+    public function __construct(private ShiftTemplateService $shiftTemplateService) {}
 
     /**
      * Display a listing of the resource.
@@ -27,7 +25,7 @@ class ShiftTemplateController extends Controller
             'sort' => $request->input('sort', 'name'),
             'direction' => $request->input('direction', 'asc'),
         ];
-        
+
         $shiftTemplates = $this->shiftTemplateService->getPaginatedShiftTemplates($options);
 
         return Inertia::render('ShiftTemplates/Index', [

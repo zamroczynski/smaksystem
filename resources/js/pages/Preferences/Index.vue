@@ -8,7 +8,6 @@ import { ColumnDef } from '@tanstack/vue-table';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import Pagination from '@/components/Pagination.vue';
 import {
     AlertDialog,
     AlertDialogAction,

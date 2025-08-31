@@ -27,8 +27,8 @@ class ScheduleService
             $query->where('status', '!=', 'archived');
         }
 
-        if (!empty($options['filter'])) {
-            $query->where('name', 'ILIKE', '%' . $options['filter'] . '%');
+        if (! empty($options['filter'])) {
+            $query->where('name', 'ILIKE', '%'.$options['filter'].'%');
         }
 
         $query->orderBy($options['sort'], $options['direction']);
@@ -162,8 +162,8 @@ class ScheduleService
         $query = Schedule::query()
             ->whereIn('status', ['published', 'archived']);
 
-        if (!empty($options['filter'])) {
-            $query->where('name', 'ILIKE', '%' . $options['filter'] . '%');
+        if (! empty($options['filter'])) {
+            $query->where('name', 'ILIKE', '%'.$options['filter'].'%');
         }
 
         $query->orderBy($options['sort'], $options['direction']);

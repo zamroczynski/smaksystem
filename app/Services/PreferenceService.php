@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Preference;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -30,8 +29,8 @@ class PreferenceService
                 ->whereNull('deleted_at');
         }
 
-        if (!empty($options['filter'])) {
-            $query->where('description', 'ILIKE', '%' . $options['filter'] . '%');
+        if (! empty($options['filter'])) {
+            $query->where('description', 'ILIKE', '%'.$options['filter'].'%');
         }
 
         $sort = $options['sort'] ?? 'date_from';
@@ -42,6 +41,7 @@ class PreferenceService
 
         $preferences->through(function ($preference) {
             $dateTo = Carbon::parse($preference->date_to);
+
             return [
                 'id' => $preference->id,
                 'description' => $preference->description,

@@ -12,9 +12,7 @@ use Inertia\Inertia;
 
 class WorkerScheduleController extends Controller
 {
-    public function __construct(private ScheduleService $scheduleService)
-    {
-    }
+    public function __construct(private ScheduleService $scheduleService) {}
 
     /**
      * Display a listing of published and archived schedules for workers.
@@ -26,7 +24,7 @@ class WorkerScheduleController extends Controller
             'sort' => $request->input('sort', 'period_start_date'),
             'direction' => $request->input('direction', 'desc'),
         ];
-        
+
         $schedules = $this->scheduleService->getPublishedAndArchivedSchedules($options);
 
         return Inertia::render('Schedules/ViewSchedules', [

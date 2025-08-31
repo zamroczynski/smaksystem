@@ -17,9 +17,7 @@ use Inertia\Inertia;
 
 class ScheduleController extends Controller
 {
-    public function __construct(private ScheduleService $scheduleService)
-    {
-    }
+    public function __construct(private ScheduleService $scheduleService) {}
 
     /**
      * Display a listing of the resource.
@@ -32,9 +30,9 @@ class ScheduleController extends Controller
             'sort' => $request->input('sort', 'period_start_date'),
             'direction' => $request->input('direction', 'desc'),
         ];
-        
+
         $schedules = $this->scheduleService->getSchedulesForIndex($options);
-        
+
         return Inertia::render('Schedules/Index', [
             'schedules' => $schedules,
             'show_archived' => $options['show_archived'],

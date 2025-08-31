@@ -19,8 +19,8 @@ class ShiftTemplateService
             $query->onlyTrashed();
         }
 
-        if (!empty($options['filter'])) {
-            $query->where('name', 'ILIKE', '%' . $options['filter'] . '%');
+        if (! empty($options['filter'])) {
+            $query->where('name', 'ILIKE', '%'.$options['filter'].'%');
         }
 
         $query->orderBy($options['sort'], $options['direction']);

@@ -3,7 +3,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type ScheduleViewProps } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, h, defineAsyncComponent } from 'vue';
-import { toast } from 'vue-sonner';
 import { ColumnDef } from '@tanstack/vue-table';
 import { Button } from '@/components/ui/button';
 

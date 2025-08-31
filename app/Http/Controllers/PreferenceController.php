@@ -12,9 +12,7 @@ use Inertia\Inertia;
 
 class PreferenceController extends Controller
 {
-    public function __construct(private PreferenceService $preferenceService)
-    {
-    }
+    public function __construct(private PreferenceService $preferenceService) {}
 
     /**
      * Display a listing of the resource.
@@ -27,7 +25,7 @@ class PreferenceController extends Controller
             'sort' => $request->input('sort', 'date_from'),
             'direction' => $request->input('direction', 'desc'),
         ];
-        
+
         $preferences = $this->preferenceService->getPaginatedPreferences($options);
 
         return Inertia::render('Preferences/Index', [
