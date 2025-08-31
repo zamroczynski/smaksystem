@@ -76,4 +76,7 @@ export interface ScheduleShowProps extends PageProps {
 
 export interface ScheduleViewProps extends PageProps {
     schedules: SchedulesData;
+    filter?: string | null;
+    sort_by?: string | null;
+    sort_direction?: 'asc' | 'desc' | null;
 }
