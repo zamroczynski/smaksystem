@@ -138,8 +138,6 @@ class UsersController extends Controller
 
     /**
      * Search for users based on a query string.
-     *
-     * @param  Request  $request
      */
     public function search(UserSearchRequest $request): JsonResource
     {

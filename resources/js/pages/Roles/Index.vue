@@ -2,14 +2,12 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type RoleIndexProps } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ref, watch, defineAsyncComponent, h } from 'vue';
 import { toast } from 'vue-sonner';
+import { ColumnDef } from '@tanstack/vue-table';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import Pagination from '@/components/Pagination.vue';
-
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,49 +18,26 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref, watch } from 'vue';
+
+
+const DataTable = defineAsyncComponent(() => import('@/components/DataTable.vue'));
 
 const props = defineProps<RoleIndexProps>();
 
+const currentPage = ref(props.roles.current_page);
+const currentGlobalFilter = ref(props.filter);
+const showDisabledRoles = ref(props.show_disabled);
+
 const form = useForm({});
-
-const restoreRole = (roleId: number) => {
-    router.post(route('roles.restore', roleId), {}, {
-        onSuccess: () => {
-            toast.success('Rola została pomyślnie przywrócona.');
-            router.get(route('roles.index', { show_disabled: showDisabledRoles.value }), {}, {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['roles', 'show_disabled'],
-            });
-        },
-        onError: () => {
-            toast.error('Wystąpił błąd podczas przywracania roli.');
-        },
-    });
-};
-
 const isAlertDialogOpen = ref(false);
 const roleToDeleteId = ref<number | null>(null);
 const roleToDeleteName = ref<string>('');
 const isRoleAssignedToUsers = ref<boolean>(false);
 
-const showDisabledRoles = ref(props.show_disabled);
-
-watch(showDisabledRoles, (newValue) => {
-    console.log('showDisabledRoles changed:', newValue);
-    router.get(route('roles.index', { show_disabled: newValue }), {}, {
-        preserveState: true,
-        preserveScroll: true,
-        only: ['roles', 'show_disabled'],
-    });
-});
-
 const confirmDelete = (roleId: number, roleName: string, isAssigned: boolean) => {
     roleToDeleteId.value = roleId;
     roleToDeleteName.value = roleName;
     isRoleAssignedToUsers.value = isAssigned;
-
     isAlertDialogOpen.value = true;
 };
 
@@ -70,96 +45,150 @@ const deleteRoleConfirmed = () => {
     if (roleToDeleteId.value !== null) {
         form.delete(route('roles.destroy', roleToDeleteId.value), {
             onSuccess: () => {
-                if (props.flash?.error) {
-                    toast.error(props.flash.error);
-                } else if (props.flash?.success) {
-                    toast.success(props.flash.success);
-                } else {
-                    toast.success('Rola została pomyślnie wyłączona.');
-                }
+                if (props.flash?.error) { toast.error(props.flash.error); }
+                else if (props.flash?.success) { toast.success(props.flash.success); }
                 isAlertDialogOpen.value = false;
-                roleToDeleteId.value = null;
-                roleToDeleteName.value = '';
-                router.get(route('roles.index', { show_disabled: showDisabledRoles.value }), {}, {
-                    preserveState: true,
-                    preserveScroll: true,
-                    only: ['roles', 'show_disabled'],
-                });
             },
             onError: () => {
-                toast.error(props.flash?.error || 'Wystąpił błąd podczas wyłączania roli.');
-                isAlertDialogOpen.value = false;
-                roleToDeleteId.value = null;
-                roleToDeleteName.value = '';
+                toast.error(props.flash?.error || 'Wystąpił nieoczekiwany błąd.');
             },
         });
     }
 };
+
+const restoreRole = (roleId: number) => {
+    router.post(route('roles.restore', roleId), {}, {
+        onSuccess: () => {
+            toast.success('Rola została pomyślnie przywrócona.');
+        },
+        onError: () => {
+            toast.error('Wystąpił błąd podczas przywracania roli.');
+        },
+    });
+};
+
+const fetchTableData = () => {
+    router.get(
+        route('roles.index'),
+        {
+            page: currentPage.value,
+            filter: currentGlobalFilter.value,
+            show_disabled: showDisabledRoles.value,
+            sort: props.sort_by,
+            direction: props.sort_direction,
+        },
+        { preserveState: true, preserveScroll: true, only: ['roles', 'show_disabled', 'sort_by', 'sort_direction', 'filter'] }
+    );
+};
+
+const handlePageUpdate = (newPage: number) => {
+    currentPage.value = newPage;
+    fetchTableData();
+};
+
+const handleFilterUpdate = (newFilter: string) => {
+    currentGlobalFilter.value = newFilter;
+    currentPage.value = 1;
+    fetchTableData();
+};
+
+const handleSortUpdate = (sortData: { column: string, direction: string }) => {
+    router.get(
+        route('roles.index'),
+        {
+            page: 1,
+            filter: currentGlobalFilter.value,
+            show_disabled: showDisabledRoles.value,
+            sort: sortData.column,
+            direction: sortData.direction,
+        },
+        { preserveState: true, preserveScroll: true, only: ['roles', 'show_disabled', 'sort_by', 'sort_direction', 'filter'] }
+    );
+};
+
+watch(showDisabledRoles, (newValue) => {
+    router.get(
+        route('roles.index'),
+        {
+            show_disabled: newValue,
+            page: 1,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['roles', 'show_disabled'],
+        }
+    );
+});
+
+const columns: ColumnDef<typeof props.roles.data[number]>[] = [
+    { accessorKey: 'id', header: 'ID', enableSorting: true },
+    { accessorKey: 'name', header: 'Nazwa', enableSorting: true },
+    {
+        accessorKey: 'deleted_at',
+        header: 'Status',
+        enableSorting: false,
+        cell: ({ row }) => {
+            const status = row.original.deleted_at === null ? 'Aktywna' : 'Wyłączona';
+            const colorClass = row.original.deleted_at === null ? 'text-green-600' : 'text-red-600';
+            return h('span', { class: colorClass + ' font-medium' }, status);
+        },
+    },
+    {
+        id: 'actions',
+        header: () => h('div', { class: 'w-full text-right' }, 'Akcje'),
+        enableSorting: false,
+        cell: ({ row }) => {
+            const role = row.original;
+            return h('div', { class: 'flex justify-end space-x-2' }, [
+                role.deleted_at === null
+                    ? h(Link, { href: route('roles.edit', role.id) }, () => h(Button, { variant: 'outline', size: 'sm' }, () => 'Edytuj'))
+                    : null,
+                role.deleted_at !== null
+                    ? h(Button, { variant: 'outline', size: 'sm', onClick: () => restoreRole(role.id) }, () => 'Przywróć')
+                    : null,
+                role.deleted_at === null
+                    ? h(Button, {
+                        variant: 'destructive',
+                        size: 'sm',
+                        onClick: () => confirmDelete(role.id, role.name, role.is_assigned_to_users || false),
+                        disabled: role.name === 'Kierownik',
+                    }, () => 'Wyłącz')
+                    : null,
+            ]);
+        },
+    },
+];
 
 </script>
 
 <template>
 
     <Head title="Zarządzanie Rolami" />
-
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Role</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Lista Ról</h3>
                     <div class="flex items-center space-x-2">
-                        <Switch id="show-disabled-roles" :model-value="showDisabledRoles"
-                            @update:model-value="showDisabledRoles = $event" />
-                        <Label for="show-disabled-roles">Pokaż tylko wyłączone role</Label>
+                        <Switch
+                            id="show-disabled-roles"
+                            :model-value="showDisabledRoles"
+                            @update:model-value="showDisabledRoles = $event"
+                        />
+                        <Label for="show-disabled-roles">Pokaż wyłączone role</Label>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-[100px]">ID</TableHead>
-                                <TableHead>Nazwa</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead class="text-right">Akcje</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-for="role in props.roles.data" :key="role.id">
-                                <TableCell class="font-medium">{{ role.id }}</TableCell>
-                                <TableCell>{{ role.name }}</TableCell>
-                                <TableCell>
-                                    <span v-if="role.deleted_at === null"
-                                        class="text-green-600 font-medium">Aktywna</span>
-                                    <span v-else class="text-red-600 font-medium">Wyłączona</span>
-                                </TableCell>
-                                <TableCell class="text-right flex justify-end space-x-2">
-                                    <Button as-child variant="outline" size="sm" v-if="role.deleted_at === null">
-                                        <Link :href="route('roles.edit', role.id)">Edytuj</Link>
-                                    </Button>
-                                    <Button v-if="role.deleted_at !== null" variant="outline" size="sm"
-                                        @click="restoreRole(role.id)">
-                                        Przywróć
-                                    </Button>
-                                    <Button v-if="role.deleted_at === null" variant="destructive" size="sm"
-                                        @click="confirmDelete(role.id, role.name, role.is_assigned_to_users || false)"
-                                        :disabled="role.name === 'admin'">
-                                        Wyłącz
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow v-if="props.roles.data.length === 0">
-                                <TableCell colspan="4" class="text-center text-gray-500">Brak ról do wyświetlenia.
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-                 <Pagination :links="props.roles.links" class="mt-6" />
+                <DataTable :columns="columns" :data="props.roles.data" :current-page="props.roles.current_page"
+                    :last-page="props.roles.last_page" :total="props.roles.total" :per-page="props.roles.per_page"
+                    @update:page="handlePageUpdate" @update:filter="handleFilterUpdate" @update:sort="handleSortUpdate"
+                    :sort-by="props.sort_by ?? null" :sort-direction="props.sort_direction ?? null" />
+
                 <div class="mt-6">
-                    <Button as-child class="w-full">
-                        <Link :href="route('roles.create')">Dodaj Rolę</Link>
-                    </Button>
+                    <Link :href="route('roles.create')">
+                    <Button class="w-full">Dodaj Rolę</Button>
+                    </Link>
                 </div>
             </div>
         </div>
@@ -169,17 +198,12 @@ const deleteRoleConfirmed = () => {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz wyłączyć rolę?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Ta akcja spowoduje wyłączenie roli "{{ roleToDeleteName }}" i nie będzie ona już dostępna do
-                        przypisania.
+                        Ta akcja spowoduje wyłączenie roli "{{ roleToDeleteName }}".
                         <template v-if="isRoleAssignedToUsers">
                             <br><br>
-                            <span class="font-semibold text-red-500">WAŻNE:</span> Rola "{{ roleToDeleteName }}" jest
-                            obecnie przypisana do jednego lub więcej pracowników. Po wyłączeniu roli, zostanie ona
-                            automatycznie odpięta od wszystkich kont pracowników, które ją posiadają.
-                            Pracownicy ci utracą uprawnienia związane z tą rolą.
+                            <span class="font-semibold text-red-500">WAŻNE:</span> Rola jest obecnie przypisana do
+                            pracowników. Po wyłączeniu, zostanie od nich automatycznie odpięta.
                         </template>
-                        <br><br>
-                        Wyłączoną rolę będzie można w przyszłości przywrócić.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

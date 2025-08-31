@@ -12,30 +12,29 @@ use Inertia\Inertia;
 
 class WorkerScheduleController extends Controller
 {
-    protected ScheduleService $scheduleService;
-
-    public function __construct(ScheduleService $scheduleService)
-    {
-        $this->scheduleService = $scheduleService;
-    }
+    public function __construct(private ScheduleService $scheduleService) {}
 
     /**
      * Display a listing of published and archived schedules for workers.
      */
     public function index(Request $request)
     {
-        $schedules = $this->scheduleService->getPublishedAndArchivedSchedules(
-            $request->input('per_page', 10)
-        );
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Grafiki Pracy', route('employee.schedules.index'))
-            ->get();
+        $options = [
+            'filter' => $request->input('filter'),
+            'sort' => $request->input('sort', 'period_start_date'),
+            'direction' => $request->input('direction', 'desc'),
+        ];
+
+        $schedules = $this->scheduleService->getPublishedAndArchivedSchedules($options);
 
         return Inertia::render('Schedules/ViewSchedules', [
             'schedules' => $schedules,
             'flash' => session('flash'),
             'can_view_my_schedule' => Auth::check(),
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getWorkerSchedulesBreadcrumbs(),
+            'filter' => $options['filter'],
+            'sort_by' => $options['sort'],
+            'sort_direction' => $options['direction'],
         ]);
     }
 
@@ -54,14 +53,10 @@ class WorkerScheduleController extends Controller
             $schedule,
             $viewType === 'my' ? Auth::id() : null
         );
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Grafiki Pracy', route('employee.schedules.index'))
-            ->add($schedule->name, '#')
-            ->get();
 
         return Inertia::render('Schedules/ShowSchedule', [
             'scheduleData' => $scheduleData,
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getWorkerSchedulesBreadcrumbs($schedule->name, '#'),
         ]);
     }
 
@@ -105,5 +100,20 @@ class WorkerScheduleController extends Controller
         $filename = 'grafik_pracy_'.$schedule->name.'_'.$user->name.'_'.$schedule->period_start_date->format('Y-m').'_moj.pdf';
 
         return $pdf->download($filename);
+    }
+
+    /**
+     * Generates breadcrumbs for the employee's graphics view.
+     */
+    protected function getWorkerSchedulesBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
+    {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Grafiki Pracy', route('employee.schedules.index'));
+
+        if ($pageTitle && $pageRoute) {
+            $breadcrumbs->add($pageTitle, $pageRoute);
+        }
+
+        return $breadcrumbs->get();
     }
 }

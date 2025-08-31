@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { type ScheduleIndexProps } from '@/types/schedule';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ref, watch, h, defineAsyncComponent } from 'vue';
 import { toast } from 'vue-sonner';
+import { ColumnDef } from '@tanstack/vue-table';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import Pagination from '@/components/Pagination.vue';
+import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,35 +18,27 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ref, watch } from 'vue';
-import { type ScheduleIndexProps } from '@/types/schedule';
 
+
+const DataTable = defineAsyncComponent(() => import('@/components/DataTable.vue'));
 const props = defineProps<ScheduleIndexProps>();
 
-watch(
-    () => props.flash,
-    (newVal) => {
-        if (newVal?.success) {
-            toast.success(newVal.success);
-        } else if (newVal?.error) {
-            toast.error(newVal.error);
-        }
-    },
-    { deep: true },
-);
-
+const currentPage = ref(props.schedules.current_page);
+const currentGlobalFilter = ref(props.filter);
 const showArchived = ref(props.show_archived);
 
 watch(showArchived, (newVal) => {
-    router.get(route('schedules.index', { show_archived: newVal }), {}, {
+    router.get(route('schedules.index', { show_archived: newVal, page: 1 }), {}, {
         preserveState: true,
         preserveScroll: true,
-        replace: true,
+        only: ['schedules', 'show_archived'],
     });
 });
-
+const form = useForm({});
 const isArchiveAlertDialogOpen = ref(false);
 const scheduleToArchiveId = ref<number | null>(null);
+const isEditAlertDialogOpen = ref(false);
+const scheduleToEditId = ref<number | null>(null);
 
 const confirmArchive = (id: number) => {
     scheduleToArchiveId.value = id;
@@ -54,28 +47,13 @@ const confirmArchive = (id: number) => {
 
 const archiveScheduleConfirmed = () => {
     if (scheduleToArchiveId.value !== null) {
-        useForm({}).delete(route('schedules.destroy', scheduleToArchiveId.value), {
-            onSuccess: () => {
-                toast.success('Grafik pracy został pomyślnie zarchiwizowany.');
-                isArchiveAlertDialogOpen.value = false;
-                scheduleToArchiveId.value = null;
-                router.get(route('schedules.index', { show_archived: showArchived.value }), {}, {
-                    preserveState: true,
-                    preserveScroll: true,
-                    only: ['schedules', 'show_archived'],
-                });
-            },
-            onError: () => {
-                toast.error('Wystąpił błąd podczas archiwizacji grafiku pracy.');
-                isArchiveAlertDialogOpen.value = false;
-                scheduleToArchiveId.value = null;
-            },
+        form.delete(route('schedules.destroy', scheduleToArchiveId.value), {
+            onSuccess: () => toast.success('Grafik pomyślnie zarchiwizowany.'),
+            onError: () => toast.error('Wystąpił błąd podczas archiwizacji.'),
+            onFinish: () => isArchiveAlertDialogOpen.value = false,
         });
     }
 };
-
-const isEditAlertDialogOpen = ref(false);
-const scheduleToEditId = ref<number | null>(null);
 
 const confirmEdit = (id: number) => {
     scheduleToEditId.value = id;
@@ -85,58 +63,108 @@ const confirmEdit = (id: number) => {
 const continueEdit = () => {
     if (scheduleToEditId.value !== null) {
         router.visit(route('schedules.edit', scheduleToEditId.value));
-        isEditAlertDialogOpen.value = false;
-        scheduleToEditId.value = null;
     }
 };
 
 const restoreSchedule = (id: number) => {
     router.post(route('schedules.restore', id), {}, {
-        onSuccess: () => {
-            toast.success('Grafik pracy został pomyślnie przywrócony.');
-            router.get(route('schedules.index', { show_archived: showArchived.value }), {}, {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['schedules', 'show_archived'],
-            });
-        },
-        onError: () => {
-            toast.error('Wystąpił błąd podczas przywracania grafiku pracy.');
-        },
+        onSuccess: () => toast.success('Grafik pomyślnie przywrócony.'),
+        onError: () => toast.error('Wystąpił błąd podczas przywracania.'),
     });
 };
 
 const publishSchedule = (id: number) => {
     router.post(route('schedules.publish', id), {}, {
-        onSuccess: () => {
-            toast.success('Grafik pracy został pomyślnie opublikowany.');
-            router.get(route('schedules.index', { show_archived: showArchived.value }), {}, {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['schedules', 'show_archived'],
-            });
-        },
-        onError: () => {
-            toast.error('Wystąpił błąd podczas publikacji grafiku pracy.');
-        },
+        onSuccess: () => toast.success('Grafik pomyślnie opublikowany.'),
+        onError: () => toast.error('Wystąpił błąd podczas publikacji.'),
     });
 };
 
 const unpublishSchedule = (id: number) => {
     router.post(route('schedules.unpublish', id), {}, {
-        onSuccess: () => {
-            toast.success('Grafik pracy został przestawiony na status roboczy.');
-            router.get(route('schedules.index', { show_archived: showArchived.value }), {}, {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['schedules', 'show_archived'],
-            });
-        },
-        onError: () => {
-            toast.error('Wystąpił błąd podczas przestawiania statusu grafiku.');
-        },
+        onSuccess: () => toast.success('Status zmieniono na roboczy.'),
+        onError: () => toast.error('Wystąpił błąd podczas zmiany statusu.'),
     });
 };
+
+const fetchTableData = () => {
+    router.get(
+        route('schedules.index'),
+        {
+            page: currentPage.value,
+            filter: currentGlobalFilter.value,
+            show_archived: showArchived.value,
+            sort: props.sort_by,
+            direction: props.sort_direction,
+        },
+        { preserveState: true, preserveScroll: true, only: ['schedules', 'show_archived', 'sort_by', 'sort_direction', 'filter'] }
+    );
+};
+
+const handlePageUpdate = (newPage: number) => {
+    currentPage.value = newPage;
+    fetchTableData();
+};
+
+const handleFilterUpdate = (newFilter: string) => {
+    currentGlobalFilter.value = newFilter;
+    currentPage.value = 1;
+    fetchTableData();
+};
+
+const handleSortUpdate = (sortData: { column: string, direction: string }) => {
+    router.get(
+        route('schedules.index'),
+        {
+            page: 1,
+            filter: currentGlobalFilter.value,
+            show_archived: showArchived.value,
+            sort: sortData.column,
+            direction: sortData.direction,
+        },
+        { preserveState: true, preserveScroll: true, only: ['schedules', 'show_archived', 'sort_by', 'sort_direction', 'filter'] }
+    );
+};
+
+const columns: ColumnDef<typeof props.schedules.data[number]>[] = [
+    { accessorKey: 'id', header: 'ID', enableSorting: true },
+    { accessorKey: 'name', header: 'Nazwa', enableSorting: true },
+    { accessorKey: 'period_start_date', header: 'Miesiąc', enableSorting: true },
+    {
+        accessorKey: 'status',
+        header: 'Status',
+        enableSorting: true,
+        cell: ({ row }) => {
+            const status = row.original.status;
+            let text = 'Nieznany';
+            let colorClass = 'text-gray-500';
+            if (status === 'published') { text = 'Opublikowany'; colorClass = 'text-green-600'; }
+            else if (status === 'draft') { text = 'Roboczy'; colorClass = 'text-blue-500'; }
+            else if (status === 'archived') { text = 'Zarchiwizowany'; colorClass = 'text-red-500'; }
+            return h('span', { class: colorClass + ' font-semibold' }, text);
+        },
+    },
+    { accessorKey: 'created_at', header: 'Utworzono', enableSorting: true },
+    {
+        id: 'actions',
+        header: () => h('div', { class: 'w-full text-right' }, 'Akcje'),
+        cell: ({ row }) => {
+            const schedule = row.original;
+            const actions = [];
+            if (schedule.status === 'archived') {
+                actions.push(h(Button, { variant: 'outline', size: 'sm', onClick: () => restoreSchedule(schedule.id) }, () => 'Przywróć'));
+            } else if (schedule.status === 'draft') {
+                actions.push(h(Button, { variant: 'outline', size: 'sm', onClick: () => confirmEdit(schedule.id) }, () => 'Edytuj'));
+                actions.push(h(Button, { variant: 'outline', size: 'sm', onClick: () => publishSchedule(schedule.id) }, () => 'Opublikuj'));
+                actions.push(h(Button, { variant: 'destructive', size: 'sm', onClick: () => confirmArchive(schedule.id) }, () => 'Archiwizuj'));
+            } else if (schedule.status === 'published') {
+                actions.push(h(Button, { variant: 'outline', size: 'sm', onClick: () => unpublishSchedule(schedule.id) }, () => 'Cofnij publikację'));
+                actions.push(h(Button, { variant: 'destructive', size: 'sm', onClick: () => confirmArchive(schedule.id) }, () => 'Archiwizuj'));
+            }
+            return h('div', { class: 'flex justify-end space-x-2' }, actions);
+        },
+    },
+];
 </script>
 
 <template>
@@ -155,71 +183,11 @@ const unpublishSchedule = (id: number) => {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead class="w-[100px]">ID</TableHead>
-                                <TableHead>Nazwa</TableHead>
-                                <TableHead>Miesiąc</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Utworzono</TableHead>
-                                <TableHead>Zaktualizowano</TableHead>
-                                <TableHead class="text-right">Akcje</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow v-if="props.schedules.data.length === 0">
-                                <TableCell colspan="7" class="text-center py-4 text-gray-500">
-                                    Brak grafików pracy do wyświetlenia.
-                                </TableCell>
-                            </TableRow>
-                            <TableRow v-for="schedule in props.schedules.data" :key="schedule.id">
-                                <TableCell class="font-medium">{{ schedule.id }}</TableCell>
-                                <TableCell>{{ schedule.name }}</TableCell>
-                                <TableCell>{{ schedule.period_start_date }}</TableCell>
-                                <TableCell>
-                                    <span v-if="schedule.status === 'published'"
-                                        class="text-green-600 font-semibold">Opublikowany</span>
-                                    <span v-else-if="schedule.status === 'draft'"
-                                        class="text-blue-500 font-semibold">Roboczy</span>
-                                    <span v-else-if="schedule.status === 'archived'"
-                                        class="text-red-500 font-semibold">Zarchiwizowany</span>
-                                    <span v-else class="text-gray-500">Nieznany</span>
-                                </TableCell>
-                                <TableCell>{{ schedule.created_at }}</TableCell>
-                                <TableCell>{{ schedule.updated_at }}</TableCell>
-                                <TableCell class="text-right flex justify-end space-x-2">
-                                    <template v-if="schedule.status === 'archived'">
-                                        <Button variant="outline" size="sm" @click="restoreSchedule(schedule.id)">
-                                            Przywróć
-                                        </Button>
-                                    </template>
-                                    <template v-else-if="schedule.status === 'draft'">
-                                        <Button variant="outline" size="sm"
-                                            @click="confirmEdit(schedule.id)">Edytuj</Button>
-                                        <Button variant="outline" size="sm" @click="publishSchedule(schedule.id)">
-                                            Opublikuj
-                                        </Button>
-                                        <Button variant="destructive" size="sm" @click="confirmArchive(schedule.id)">
-                                            Archiwizuj
-                                        </Button>
-                                    </template>
-                                    <template v-else-if="schedule.status === 'published'">
-                                        <Button variant="outline" size="sm" @click="unpublishSchedule(schedule.id)">
-                                            Cofnij publikację
-                                        </Button>
-                                        <Button variant="destructive" size="sm" @click="confirmArchive(schedule.id)">
-                                            Archiwizuj
-                                        </Button>
-                                    </template>
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-
-                <Pagination :links="props.schedules.links" class="mt-6" />
+                <DataTable :columns="columns" :data="props.schedules.data" :current-page="props.schedules.current_page"
+                    :last-page="props.schedules.last_page" :total="props.schedules.total"
+                    :per-page="props.schedules.per_page" @update:page="handlePageUpdate"
+                    @update:filter="handleFilterUpdate" @update:sort="handleSortUpdate" :sort-by="props.sort_by ?? null"
+                    :sort-direction="props.sort_direction ?? null" />
 
                 <div class="mt-6">
                     <Button as-child class="w-full">

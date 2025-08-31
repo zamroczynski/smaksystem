@@ -1,20 +1,16 @@
-import { type BreadcrumbItem, Links, Flash } from '@/types';
-import { type Permission, Role } from '@/types/models';
+import type { BreadcrumbItem, PageProps, PaginatedData } from '@/types';
+import type { Permission, Role } from '@/types/models';
 
-export interface RoleIndexProps {
-        roles: {
-        data: Role[];
-        links: Links[];
-        current_page: number;
-        from: number;
-        last_page: number;
-        per_page: number;
-        to: number;
-        total: number;
-    };
-    flash?: Flash;
+interface RoleData extends PaginatedData {
+    data: Role[];
+}
+
+export interface RoleIndexProps extends PageProps {
+    roles: RoleData;
     show_disabled: boolean;
-    breadcrumbs: BreadcrumbItem[]
+    filter?: string | null;
+    sort_by?: string | null;
+    sort_direction?: 'asc' | 'desc' | null;
 }
 
 export interface RoleEditProps {

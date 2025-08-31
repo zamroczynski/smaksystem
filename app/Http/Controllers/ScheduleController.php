@@ -17,32 +17,30 @@ use Inertia\Inertia;
 
 class ScheduleController extends Controller
 {
-    protected ScheduleService $scheduleService;
-
-    /**
-     * Constructor to inject the ScheduleService.
-     */
-    public function __construct(ScheduleService $scheduleService)
-    {
-        $this->scheduleService = $scheduleService;
-    }
+    public function __construct(private ScheduleService $scheduleService) {}
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $showArchived = $request->boolean('show_archived');
-        $schedules = $this->scheduleService->getSchedulesForIndex($showArchived);
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Grafiki Pracy', route('schedules.index'))
-            ->get();
+        $options = [
+            'show_archived' => $request->boolean('show_archived'),
+            'filter' => $request->input('filter'),
+            'sort' => $request->input('sort', 'period_start_date'),
+            'direction' => $request->input('direction', 'desc'),
+        ];
+
+        $schedules = $this->scheduleService->getSchedulesForIndex($options);
 
         return Inertia::render('Schedules/Index', [
             'schedules' => $schedules,
-            'show_archived' => $showArchived,
+            'show_archived' => $options['show_archived'],
             'flash' => session('flash'),
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getSchedulesBreadcrumbs(),
+            'filter' => $options['filter'],
+            'sort_by' => $options['sort'],
+            'sort_direction' => $options['direction'],
         ]);
     }
 
@@ -51,15 +49,9 @@ class ScheduleController extends Controller
      */
     public function create()
     {
-        $activeShiftTemplates = ShiftTemplate::all();
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Grafiki Pracy', route('schedules.index'))
-            ->add('Dodaj Grafik Pracy', route('schedules.create'))
-            ->get();
-
         return Inertia::render('Schedules/Create', [
-            'activeShiftTemplates' => $activeShiftTemplates,
-            'breadcrumbs' => $breadcrumbs,
+            'activeShiftTemplates' => ShiftTemplate::all(),
+            'breadcrumbs' => $this->getSchedulesBreadcrumbs('Dodaj Grafik', route('schedules.create')),
         ]);
     }
 
@@ -103,11 +95,6 @@ class ScheduleController extends Controller
 
         $scheduleData = $this->scheduleService->getScheduleDetailsForEdit($schedule);
 
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Grafiki Pracy', route('schedules.index'))
-            ->add('Edycja: '.$schedule->name, route('schedules.edit', $schedule->id))
-            ->get();
-
         return Inertia::render('Schedules/Edit', [
             'schedule' => $scheduleData['schedule'],
             'assignedShiftTemplates' => $scheduleData['assignedShiftTemplates'],
@@ -115,7 +102,7 @@ class ScheduleController extends Controller
             'initialAssignments' => $scheduleData['initialAssignments'],
             'monthDays' => $scheduleData['monthDays'],
             'preferences' => $scheduleData['preferences'],
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getSchedulesBreadcrumbs('Edycja: '.$schedule->name, route('schedules.edit', $schedule->id)),
             'flash' => session('flash'),
         ]);
     }
@@ -183,5 +170,20 @@ class ScheduleController extends Controller
         $schedule->update(['status' => 'draft']);
 
         return back()->with('success', 'Grafik pracy został przestawiony na status roboczy.');
+    }
+
+    /**
+     * Generates breadcrumbs for work schedules.
+     */
+    protected function getSchedulesBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
+    {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Grafiki Pracy', route('schedules.index'));
+
+        if ($pageTitle && $pageRoute) {
+            $breadcrumbs->add($pageTitle, $pageRoute);
+        }
+
+        return $breadcrumbs->get();
     }
 }
