@@ -5,52 +5,39 @@ namespace App\Http\Controllers;
 use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreShiftTemplateRequest;
 use App\Models\ShiftTemplate;
+use App\Services\ShiftTemplateService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ShiftTemplateController extends Controller
 {
+    public function __construct(private ShiftTemplateService $shiftTemplateService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $showDeleted = $request->boolean('show_deleted');
-
-        $query = ShiftTemplate::query();
-
-        if ($showDeleted) {
-            $query->onlyTrashed();
-        }
-
-        $shiftTemplates = $query->orderBy('name')->paginate(10)->appends([
-            'show_deleted' => $showDeleted,
-        ]);
-
-        $shiftTemplates->through(function ($shiftTemplate) {
-            return [
-                'id' => $shiftTemplate->id,
-                'name' => $shiftTemplate->name,
-                'time_from' => Carbon::parse($shiftTemplate->time_from)->format('H:i'),
-                'time_to' => Carbon::parse($shiftTemplate->time_to)->format('H:i'),
-                'duration_hours' => number_format($shiftTemplate->duration_hours, 2),
-                'required_staff_count' => $shiftTemplate->required_staff_count,
-                'created_at' => $shiftTemplate->created_at->format('Y-m-d H:i'),
-                'updated_at' => $shiftTemplate->updated_at->format('Y-m-d H:i'),
-                'deleted_at' => $shiftTemplate->deleted_at ? $shiftTemplate->deleted_at->format('Y-m-d H:i') : null,
-            ];
-        });
-
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Harmonogramy Zmian', route('shift-templates.index'))
-            ->get();
+        $options = [
+            'show_deleted' => $request->boolean('show_deleted'),
+            'filter' => $request->input('filter'),
+            'sort' => $request->input('sort', 'name'),
+            'direction' => $request->input('direction', 'asc'),
+        ];
+        
+        $shiftTemplates = $this->shiftTemplateService->getPaginatedShiftTemplates($options);
 
         return Inertia::render('ShiftTemplates/Index', [
             'shiftTemplates' => $shiftTemplates,
-            'show_deleted' => $showDeleted,
+            'show_deleted' => $options['show_deleted'],
             'flash' => session('flash'),
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getShiftTemplatesBreadcrumbs(),
+            'filter' => $options['filter'],
+            'sort_by' => $options['sort'],
+            'sort_direction' => $options['direction'],
         ]);
     }
 
@@ -59,13 +46,8 @@ class ShiftTemplateController extends Controller
      */
     public function create()
     {
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Harmonogramy Zmian', route('shift-templates.index'))
-            ->add('Dodaj Harmonogram Zmian', route('shift-templates.create'))
-            ->get();
-
         return Inertia::render('ShiftTemplates/Create', [
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getShiftTemplatesBreadcrumbs('Dodaj Harmonogram', route('shift-templates.create')),
         ]);
     }
 
@@ -85,11 +67,6 @@ class ShiftTemplateController extends Controller
      */
     public function edit(ShiftTemplate $shiftTemplate)
     {
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Harmonogramy Zmian', route('shift-templates.index'))
-            ->add('Edytuj Harmonogram Zmian', route('shift-templates.edit', $shiftTemplate))
-            ->get();
-
         return Inertia::render('ShiftTemplates/Edit', [
             'shiftTemplate' => [
                 'id' => $shiftTemplate->id,
@@ -99,7 +76,7 @@ class ShiftTemplateController extends Controller
                 'duration_hours' => number_format($shiftTemplate->duration_hours, 2),
                 'required_staff_count' => $shiftTemplate->required_staff_count,
             ],
-            'breadcrumbs' => $breadcrumbs,
+            'breadcrumbs' => $this->getShiftTemplatesBreadcrumbs('Edytuj Harmonogram', route('shift-templates.edit', $shiftTemplate)),
         ]);
     }
 
@@ -133,5 +110,20 @@ class ShiftTemplateController extends Controller
         $shiftTemplate->restore();
 
         return back()->with('success', 'Zmiana została pomyślnie przywrócona.');
+    }
+
+    /**
+     * Generates breadcrumbs for shift schedules.
+     */
+    protected function getShiftTemplatesBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
+    {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Harmonogramy Zmian', route('shift-templates.index'));
+
+        if ($pageTitle && $pageRoute) {
+            $breadcrumbs->add($pageTitle, $pageRoute);
+        }
+
+        return $breadcrumbs->get();
     }
 }

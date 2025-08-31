@@ -8,6 +8,9 @@ interface ShiftTemplatesData extends PaginatedData {
 export interface ShiftTemplateIndexProps extends PageProps {
     shiftTemplates: ShiftTemplatesData;
     show_deleted: boolean;
+    filter?: string | null;
+    sort_by?: string | null;
+    sort_direction?: 'asc' | 'desc' | null;
 }
 
 export interface ShiftTemplateCreateProps extends PageProps {
