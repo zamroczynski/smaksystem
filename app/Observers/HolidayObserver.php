@@ -3,10 +3,13 @@
 namespace App\Observers;
 
 use App\Models\Holiday;
+use App\Observers\Traits\LogsActivity;
 use App\Services\HolidayService;
 
 class HolidayObserver
 {
+    use LogsActivity;
+
     public function __construct(protected HolidayService $holidayService) {}
 
     /**
@@ -15,6 +18,8 @@ class HolidayObserver
     public function created(Holiday $holiday): void
     {
         $this->holidayService->syncHolidayInstances($holiday);
+
+        $this->logCreationActivity($holiday);
     }
 
     /**
@@ -23,6 +28,8 @@ class HolidayObserver
     public function updated(Holiday $holiday): void
     {
         $this->holidayService->syncHolidayInstances($holiday);
+
+        $this->logUpdateActivity($holiday);
     }
 
     /**
@@ -31,6 +38,8 @@ class HolidayObserver
     public function deleted(Holiday $holiday): void
     {
         $this->holidayService->syncHolidayInstances($holiday);
+
+        $this->logDeletionActivity($holiday);
     }
 
     /**
@@ -39,6 +48,8 @@ class HolidayObserver
     public function restored(Holiday $holiday): void
     {
         $this->holidayService->syncHolidayInstances($holiday);
+
+        $this->logRestoredActivity($holiday);
     }
 
     /**
@@ -47,5 +58,7 @@ class HolidayObserver
     public function forceDeleted(Holiday $holiday): void
     {
         $this->holidayService->syncHolidayInstances($holiday);
+
+        $this->logForceDeletedActivity($holiday);
     }
 }

@@ -75,7 +75,7 @@ class UserService
      */
     public function getPaginatedUsers(array $options): LengthAwarePaginator
     {
-        Log::info('Opcje paginacji otrzymane z kontrolera:', $options);
+        // Log::info('Opcje paginacji otrzymane z kontrolera:', $options);
 
         $showDisabled = $options['show_disabled'] ?? false;
         $filter = $options['filter'] ?? null;
@@ -99,7 +99,7 @@ class UserService
             $usersQuery->onlyTrashed();
         }
 
-        Log::info('Konstruowane zapytanie do bazy danych:', ['sql' => $usersQuery->toSql(), 'bindings' => $usersQuery->getBindings()]);
+        // Log::info('Konstruowane zapytanie do bazy danych:', ['sql' => $usersQuery->toSql(), 'bindings' => $usersQuery->getBindings()]);
 
         $users = $usersQuery->paginate(10)->appends([
             'show_disabled' => $showDisabled,
@@ -128,11 +128,11 @@ class UserService
      */
     protected function applyFilters(Builder $query, ?string $filter): Builder
     {
-        Log::info('Zastosowanie filtra:', ['filter' => $filter]);
+        // Log::info('Zastosowanie filtra:', ['filter' => $filter]);
         if ($filter) {
             $query->where(function ($query) use ($filter) {
                 $lowerCaseFilter = strtolower($filter);
-                Log::info('Wyszukiwany tekst po konwersji:', ['lowerCaseFilter' => $lowerCaseFilter]);
+                // Log::info('Wyszukiwany tekst po konwersji:', ['lowerCaseFilter' => $lowerCaseFilter]);
                 $query->whereRaw('LOWER(name) LIKE ?', ['%'.$lowerCaseFilter.'%'])
                     ->orWhereRaw('LOWER(email) LIKE ?', ['%'.$lowerCaseFilter.'%'])
                     ->orWhereHas('roles', function ($q) use ($lowerCaseFilter) {
@@ -149,15 +149,15 @@ class UserService
      */
     protected function applySorting(Builder $query, string $sort, string $direction): Builder
     {
-        Log::info('Zastosowanie sortowania:', ['sort' => $sort, 'direction' => $direction]);
+        // Log::info('Zastosowanie sortowania:', ['sort' => $sort, 'direction' => $direction]);
         if ($sort === 'roles') {
-            Log::info('Sortowanie po rolach: Wykonywany JOIN.');
+            // Log::info('Sortowanie po rolach: Wykonywany JOIN.');
             $query->select('users.*')
                 ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
                 ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
                 ->orderBy('roles.name', $direction);
         } else {
-            Log::info('Sortowanie po innej kolumnie niż role.');
+            // Log::info('Sortowanie po innej kolumnie niż role.');
             $query->orderBy('users.'.$sort, $direction);
         }
 
