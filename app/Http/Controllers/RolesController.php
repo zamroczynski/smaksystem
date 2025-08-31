@@ -14,48 +14,30 @@ use Spatie\Permission\Models\Permission;
 
 class RolesController extends Controller
 {
-    protected $roleService;
-
-    public function __construct(RoleService $roleService)
-    {
-        $this->roleService = $roleService;
-    }
+    public function __construct(private RoleService $roleService) {}
 
     /**
      * Display a listing of the roles.
      */
     public function index(Request $request)
     {
-        $showDisabled = $request->boolean('show_disabled');
+        $options = [
+            'show_disabled' => $request->boolean('show_disabled'),
+            'filter' => $request->input('filter'),
+            'sort' => $request->input('sort', 'id'),
+            'direction' => $request->input('direction', 'asc'),
+        ];
 
-        $rolesQuery = Role::orderBy('id');
-
-        if ($showDisabled) {
-            $rolesQuery->onlyTrashed();
-        }
-
-        $roles = $rolesQuery->paginate(10)->appends([
-            'show_disabled' => $showDisabled,
-        ]);
-
-        $roles->through(function ($role) {
-            return [
-                'id' => $role->id,
-                'name' => $role->name,
-                'deleted_at' => $role->deleted_at,
-                'is_assigned_to_users' => $role->users()->exists(),
-            ];
-        });
-
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Zarządzanie Rolami', route('roles.index'))
-            ->get();
+        $roles = $this->roleService->getPaginatedRoles($options);
 
         return Inertia::render('Roles/Index', [
             'roles' => $roles,
             'flash' => session('flash'),
-            'show_disabled' => $showDisabled,
-            'breadcrumbs' => $breadcrumbs,
+            'show_disabled' => $options['show_disabled'],
+            'breadcrumbs' => $this->getRolesBreadcrumbs(),
+            'filter' => $options['filter'],
+            'sort_by' => $options['sort'],
+            'sort_direction' => $options['direction'],
         ]);
     }
 
@@ -64,16 +46,9 @@ class RolesController extends Controller
      */
     public function create()
     {
-        $permissions = Permission::all(['id', 'name']);
-
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Zarządzanie Rolami', route('roles.index'))
-            ->add('Dodaj nową rolę', route('roles.create'))
-            ->get();
-
         return Inertia::render('Roles/Create', [
-            'permissions' => $permissions,
-            'breadcrumbs' => $breadcrumbs,
+            'permissions' => Permission::all(['id', 'name']),
+            'breadcrumbs' => $this->getRolesBreadcrumbs('Dodaj nową rolę', route('roles.create')),
         ]);
     }
 
@@ -98,19 +73,11 @@ class RolesController extends Controller
      */
     public function edit(Role $role)
     {
-        $allPermissions = Permission::all(['id', 'name']);
-        $rolePermissions = $role->permissions->pluck('name')->toArray();
-
-        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
-            ->add('Zarządzanie Rolami', route('roles.index'))
-            ->add('Edytuj rolę', route('roles.edit', $role))
-            ->get();
-
         return Inertia::render('Roles/Edit', [
             'role' => $role->only('id', 'name'),
-            'allPermissions' => $allPermissions,
-            'rolePermissions' => $rolePermissions,
-            'breadcrumbs' => $breadcrumbs,
+            'allPermissions' => Permission::all(['id', 'name']),
+            'rolePermissions' => $role->permissions->pluck('name')->toArray(),
+            'breadcrumbs' => $this->getRolesBreadcrumbs('Edytuj rolę', route('roles.edit', $role)),
         ]);
     }
 
@@ -122,7 +89,7 @@ class RolesController extends Controller
         $validatedData = $request->validated();
 
         $this->roleService->updateRole(
-            $role, // Przekaż obiekt roli
+            $role,
             $validatedData['name'],
             $validatedData['permissions'] ?? []
         );
@@ -142,7 +109,7 @@ class RolesController extends Controller
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        // Sprawdź, czy użytkownik próbuje usunąć rolę, którą sam posiada
+
         if ($user->hasRole($role->name)) {
             return to_route('roles.index')->with('error', 'Nie możesz wyłączyć roli, którą sam posiadasz!');
         }
@@ -156,7 +123,7 @@ class RolesController extends Controller
     /**
      * Restore the specified soft-deleted role.
      */
-    public function restore(int $roleId) // Przyjmujemy ID, bo rola może być już usunięta
+    public function restore(int $roleId)
     {
         $role = $this->roleService->restoreRole($roleId);
 
@@ -165,5 +132,20 @@ class RolesController extends Controller
         }
 
         return to_route('roles.index')->with('error', 'Nie udało się przywrócić roli.');
+    }
+
+    /**
+     * Generates breadcrumbs for role management.
+     */
+    protected function getRolesBreadcrumbs(?string $pageTitle = null, ?string $pageRoute = null): array
+    {
+        $breadcrumbs = BreadcrumbsGenerator::make('Panel nawigacyjny', route('dashboard'))
+            ->add('Zarządzanie Rolami', route('roles.index'));
+
+        if ($pageTitle && $pageRoute) {
+            $breadcrumbs->add($pageTitle, $pageRoute);
+        }
+
+        return $breadcrumbs->get();
     }
 }

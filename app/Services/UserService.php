@@ -8,15 +8,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
 class UserService
 {
     /**
-     * Tworzy nowego użytkownika i przypisuje mu rolę.
+     * Creates a new user and assigns a role to them.
      *
-     * @param  array  $data  Dane z requestu (walidowane).
-     * @return User Nowo utworzony użytkownik.
+     * @param  array  $data  Data from the request (validated).
+     * @return User Newly created user.
      */
     public function create(array $data): User
     {
@@ -37,11 +36,11 @@ class UserService
     }
 
     /**
-     * Aktualizuje dane użytkownika i jego role.
+     * Updates user data and roles.
      *
-     * @param  User  $user  Użytkownik do zaktualizowania.
-     * @param  array  $data  Dane z requestu (walidowane).
-     * @return User Zaktualizowany użytkownik.
+     * @param  User  $user  User to update.
+     * @param  array  $data  Data from the request (validated).
+     * @return User Updated user.
      */
     public function update(User $user, array $data): User
     {
@@ -50,7 +49,6 @@ class UserService
             $user->login = $data['login'];
             $user->email = $data['email'] ?? null;
 
-            // Zmień hasło tylko, jeśli zostało podane
             if (! empty($data['password'])) {
                 $user->password = Hash::make($data['password']);
             }
@@ -60,7 +58,6 @@ class UserService
             if (isset($data['role_name']) && ! is_null($data['role_name'])) {
                 $user->syncRoles([$data['role_name']]);
             } else {
-                // Jeśli rola nie została wybrana lub ustawiono null (dla "Brak roli"), usuń wszystkie role
                 $user->syncRoles([]);
             }
         });
@@ -69,14 +66,12 @@ class UserService
     }
 
     /**
-     * Pobiera paginowaną listę użytkowników z filtrowaniem i sortowaniem.
+     * Retrieves a paginated list of users with filtering and sorting.
      *
-     * @param  array  $options  Opcje filtrowania i sortowania.
+     * @param  array  $options  Filtering and sorting options.
      */
     public function getPaginatedUsers(array $options): LengthAwarePaginator
     {
-        // Log::info('Opcje paginacji otrzymane z kontrolera:', $options);
-
         $showDisabled = $options['show_disabled'] ?? false;
         $filter = $options['filter'] ?? null;
         $sort = $options['sort'] ?? 'id';
@@ -98,8 +93,6 @@ class UserService
         if ($showDisabled) {
             $usersQuery->onlyTrashed();
         }
-
-        // Log::info('Konstruowane zapytanie do bazy danych:', ['sql' => $usersQuery->toSql(), 'bindings' => $usersQuery->getBindings()]);
 
         $users = $usersQuery->paginate(10)->appends([
             'show_disabled' => $showDisabled,
@@ -124,15 +117,13 @@ class UserService
     }
 
     /**
-     * Stosuje filtry wyszukiwania do zapytania.
+     * Applies search filters to the query.
      */
     protected function applyFilters(Builder $query, ?string $filter): Builder
     {
-        // Log::info('Zastosowanie filtra:', ['filter' => $filter]);
         if ($filter) {
             $query->where(function ($query) use ($filter) {
                 $lowerCaseFilter = strtolower($filter);
-                // Log::info('Wyszukiwany tekst po konwersji:', ['lowerCaseFilter' => $lowerCaseFilter]);
                 $query->whereRaw('LOWER(name) LIKE ?', ['%'.$lowerCaseFilter.'%'])
                     ->orWhereRaw('LOWER(email) LIKE ?', ['%'.$lowerCaseFilter.'%'])
                     ->orWhereHas('roles', function ($q) use ($lowerCaseFilter) {
@@ -145,19 +136,16 @@ class UserService
     }
 
     /**
-     * Stosuje sortowanie do zapytania.
+     * Applies sorting to the query.
      */
     protected function applySorting(Builder $query, string $sort, string $direction): Builder
     {
-        // Log::info('Zastosowanie sortowania:', ['sort' => $sort, 'direction' => $direction]);
         if ($sort === 'roles') {
-            // Log::info('Sortowanie po rolach: Wykonywany JOIN.');
             $query->select('users.*')
                 ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
                 ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
                 ->orderBy('roles.name', $direction);
         } else {
-            // Log::info('Sortowanie po innej kolumnie niż role.');
             $query->orderBy('users.'.$sort, $direction);
         }
 

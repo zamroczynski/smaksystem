@@ -9,19 +9,17 @@ use Illuminate\Support\Facades\DB;
 class RoleService
 {
     /**
-     * Tworzy nową rolę i przypisuje jej uprawnienia.
+     * Creates a new role and assigns permissions to it.
      *
-     * @param  string  $roleName  Nazwa roli.
-     * @param  array  $permissionNames  Tablica nazw uprawnień do przypisania.
-     * @return Role Nowo utworzona rola.
+     * @param  string  $roleName  Role name.
+     * @param  array  $permissionNames  Table of names of permissions to assign.
+     * @return Role Newly created role.
      */
     public function createRoleWithPermissions(string $roleName, array $permissionNames): Role
     {
         return DB::transaction(function () use ($roleName, $permissionNames) {
-            // Upewnij się, że rola nie istnieje przed utworzeniem
             $role = Role::firstOrCreate(['name' => $roleName]);
 
-            // Przypisz uprawnienia do roli
             if (! empty($permissionNames)) {
                 $role->givePermissionTo($permissionNames);
             }
@@ -31,22 +29,20 @@ class RoleService
     }
 
     /**
-     * Aktualizuje istniejącą rolę i synchronizuje jej uprawnienia.
+     * Updates an existing role and synchronizes its permissions.
      *
-     * @param  Role  $role  Obiekt roli do zaktualizowania.
-     * @param  string  $roleName  Nowa nazwa roli.
-     * @param  array  $permissionNames  Tablica nazw uprawnień do przypisania.
-     * @return Role Zaktualizowana rola.
+     * @param  Role  $role  Role object to be updated.
+     * @param  string  $roleName  New role name.
+     * @param  array  $permissionNames  Table of names of permissions to assign.
+     * @return Role Updated role.
      */
     public function updateRole(Role $role, string $roleName, array $permissionNames): Role
     {
         return DB::transaction(function () use ($role, $roleName, $permissionNames) {
-            // Zaktualizuj nazwę roli, jeśli się zmieniła
             if ($role->name !== $roleName) {
                 $role->update(['name' => $roleName]);
             }
 
-            // Zsynchronizuj uprawnienia roli
             $role->syncPermissions($permissionNames);
 
             return $role;
@@ -54,19 +50,17 @@ class RoleService
     }
 
     /**
-     * Miękko usuwa rolę i odłącza ją od wszystkich użytkowników.
+     * Softly removes the role and disconnects it from all users.
      *
-     * @param  Role  $role  Obiekt roli do usunięcia.
-     * @return bool True, jeśli usunięcie się powiodło.
+     * @param  Role  $role  Role object to be deleted.
+     * @return bool True, if deletion was successful.
      */
     public function destroyRole(Role $role): bool
     {
         return DB::transaction(function () use ($role) {
-            // Sprawdź, czy rola jest przypisana do jakichkolwiek użytkowników
             $usersWithRole = User::role($role->name)->get();
 
             if ($usersWithRole->isNotEmpty()) {
-                // Jeśli są użytkownicy z tą rolą, odepnij ją od nich
                 foreach ($usersWithRole as $user) {
                     $user->removeRole($role->name);
                 }
@@ -77,7 +71,7 @@ class RoleService
     }
 
     /**
-     * Sprawdza, czy rola jest przypisana do jakichkolwiek użytkowników.
+     * Checks if the role is assigned to any users.
      */
     public function isRoleAssignedToUsers(Role $role): bool
     {
@@ -85,10 +79,10 @@ class RoleService
     }
 
     /**
-     * Przywraca miękko usuniętą rolę.
+     * Restores the gently removed role.
      *
-     * @param  int  $roleId  ID roli do przywrócenia.
-     * @return Role|null Przywrócona rola lub null, jeśli nie znaleziono.
+     * @param  int  $roleId  ID of the role to be restored.
+     * @return Role|null The restored role or null if not found.
      */
     public function restoreRole(int $roleId): ?Role
     {
@@ -99,5 +93,36 @@ class RoleService
         }
 
         return $role;
+    }
+
+    /**
+     * Retrieves paginated roles with filtering and sorting options.
+     */
+    public function getPaginatedRoles(array $options)
+    {
+        $query = Role::query();
+
+        if ($options['show_disabled']) {
+            $query->onlyTrashed();
+        }
+
+        if (! empty($options['filter'])) {
+            $query->where('name', 'ILIKE', '%'.$options['filter'].'%');
+        }
+
+        $query->orderBy($options['sort'], $options['direction']);
+
+        $roles = $query->paginate(10)->appends($options);
+
+        $roles->through(function ($role) {
+            return [
+                'id' => $role->id,
+                'name' => $role->name,
+                'deleted_at' => $role->deleted_at,
+                'is_assigned_to_users' => $role->users()->exists(),
+            ];
+        });
+
+        return $roles;
     }
 }
