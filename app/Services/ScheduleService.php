@@ -15,30 +15,31 @@ use Illuminate\Support\Facades\Log;
 class ScheduleService
 {
     /**
-     * Prepare data for the schedule index view.
+     * Prepare data for the schedule index view with filtering and sorting.
      */
-    public function getSchedulesForIndex(bool $showArchived, int $perPage = 10): LengthAwarePaginator
+    public function getSchedulesForIndex(array $options, int $perPage = 10): LengthAwarePaginator
     {
         $query = Schedule::query();
 
-        if ($showArchived) {
+        if ($options['show_archived']) {
             $query->onlyTrashed();
         } else {
             $query->where('status', '!=', 'archived');
         }
 
-        $schedules = $query->orderByDesc('period_start_date')
-            ->orderBy('name')
-            ->paginate($perPage)
-            ->appends([
-                'show_archived' => $showArchived,
-            ]);
+        if (!empty($options['filter'])) {
+            $query->where('name', 'ILIKE', '%' . $options['filter'] . '%');
+        }
+
+        $query->orderBy($options['sort'], $options['direction']);
+
+        $schedules = $query->paginate($perPage)->appends($options);
 
         return $schedules->through(function ($schedule) {
             return [
                 'id' => $schedule->id,
                 'name' => $schedule->name,
-                'period_start_date' => Carbon::parse($schedule->period_start_date)->format('Y-m-d'),
+                'period_start_date' => Carbon::parse($schedule->period_start_date)->format('Y-m'),
                 'status' => $schedule->status,
                 'created_at' => $schedule->created_at->format('Y-m-d H:i'),
                 'updated_at' => $schedule->updated_at->format('Y-m-d H:i'),

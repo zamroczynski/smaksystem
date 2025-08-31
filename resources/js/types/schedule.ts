@@ -8,6 +8,9 @@ export interface SchedulesData extends PaginatedData {
 export interface ScheduleIndexProps extends PageProps {
     schedules: SchedulesData;
     show_archived: boolean;
+    filter?: string | null;
+    sort_by?: string | null;
+    sort_direction?: 'asc' | 'desc' | null;
 }
 
 export interface ScheduleEditProps extends PageProps {
