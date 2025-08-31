@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -161,5 +162,31 @@ class UserService
         }
 
         return $query;
+    }
+
+    /**
+     * Searches for users based on a string of characters and formats the results
+     * in the form of a collection ready for use in a combobox component.
+     *
+     * @param  string  $query  Search string.
+     */
+    public function searchForCombobox(string $query = ''): Collection
+    {
+        $userQuery = User::query();
+
+        if (empty($query)) {
+            $userQuery->orderBy('id', 'desc');
+        } else {
+            $userQuery->where('name', 'ILIKE', "%{$query}%");
+        }
+
+        return $userQuery
+            ->select(['id', 'name'])
+            ->take(10)
+            ->get()
+            ->map(fn (User $user) => [
+                'value' => $user->id,
+                'label' => $user->name,
+            ]);
     }
 }

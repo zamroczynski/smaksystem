@@ -23,8 +23,8 @@ Route::get('dashboard', function () {
 
 Route::middleware(['auth', 'can:Edycja pracowników'])->group(function () {
     Route::resource('users', UsersController::class)->except(['show']);
-    Route::post('/users/{userId}/restore', [UsersController::class, 'restore'])
-        ->name('users.restore');
+    Route::post('/users/{userId}/restore', [UsersController::class, 'restore'])->name('users.restore');
+    Route::get('/users/search', [UsersController::class, 'search'])->name('users.search');
 });
 
 Route::middleware(['auth', 'can:Edycja ról'])->group(function () {
