@@ -1,5 +1,5 @@
-import { type PaginatedData, type PageProps } from '@/types';
-import { type Holiday, CalculationRule} from '@/types/models';
+import type {  PaginatedData, PageProps } from '@/types';
+import type {  Holiday} from '@/types/models';
 
 interface HolidaysData extends PaginatedData {
     data: Holiday[]
@@ -22,11 +22,16 @@ export interface HolidayCreateProps extends PageProps {
     baseHolidays: BaseHoliday[];
 }
 
-export interface HolidayEditForm {
+export type HolidayEditForm = {
     name: string;
     date: string;
     day_month: string;
-    calculation_rule: CalculationRule | null;
+    calculation_rule: {
+        base_type: string;
+        base_event: string | null;
+        base_holiday_id: number | null;
+        offset: number;
+    } | null;
 }
 
 export interface HolidayEditProps extends PageProps {
