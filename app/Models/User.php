@@ -9,11 +9,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Scopes\ProtectedRecordScope;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new ProtectedRecordScope());
+    }
 
     /**
      * The attributes that are mass assignable.

@@ -19,6 +19,8 @@ use App\Observers\ScheduleShiftTemplateObserver;
 use App\Observers\ShiftTemplateObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (Schema::hasTable('roles')) {
+            Gate::before(function ($user, $ability) {
+                $superAdminRole = config('app.super_admin_role_name', 'Super Admin');
+                return $user->hasRole($superAdminRole) ? true : null;
+            });
+        }
         Holiday::observe(HolidayObserver::class);
         User::observe(UserObserver::class);
         Preference::observe(PreferenceObserver::class);

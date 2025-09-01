@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'super_admin_role_name' => env('SUPER_ADMIN_ROLE', 'Super Admin'),
+
 ];
