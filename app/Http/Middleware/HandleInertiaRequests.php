@@ -48,6 +48,10 @@ class HandleInertiaRequests extends Middleware
             $rolePermissions = $firstRole->permissions->pluck('name')->toArray();
         }
 
+        // if ($user && method_exists($user, 'hasTwoFactorEnabled')) {
+        //     $user->append('two_factor_enabled');
+        // }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
