@@ -10,11 +10,13 @@ use App\Http\Responses\CustomPasswordConfirmedResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Contracts\PasswordConfirmedResponse as PasswordConfirmedResponseContract;
+use Inertia\Inertia;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -32,6 +34,17 @@ class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->app->singleton(PasswordConfirmedResponseContract::class, CustomPasswordConfirmedResponse::class);
+
+        Fortify::loginView(function () {
+            return Inertia::render('auth/Login', [
+                'canResetPassword' => RouteFacade::has('password.request'),
+                'status' => session('status'),
+            ]);
+        });
+
+        Fortify::twoFactorChallengeView(function () {
+            return Inertia::render('auth/TwoFactorChallenge');
+        });
         
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
