@@ -93,6 +93,12 @@ const allNavItems: NavItemWithPermission[] = [
         icon: Apple,
         permission: 'Edycja Produktów',
     },
+    {
+        title: 'Jednostki Miary',
+        href: '/unit-of-measures',
+        icon: Apple,
+        permission: 'Edycja Produktów',
+    },
 ];
 
 const filteredNavItems = computed(() => {

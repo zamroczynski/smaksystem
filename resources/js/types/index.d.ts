@@ -11,6 +11,7 @@ export * from './pagination';
 export * from './product';
 export * from './product-type';
 export * from './category';
+export * from './unit-of-measure';
 
 export interface Auth {
     user: User;
