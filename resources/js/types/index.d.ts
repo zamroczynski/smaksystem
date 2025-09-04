@@ -10,6 +10,7 @@ export * from './shift-template';
 export * from './pagination';
 export * from './product';
 export * from './product-type';
+export * from './category';
 
 export interface Auth {
     user: User;
