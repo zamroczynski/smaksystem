@@ -3,9 +3,9 @@
 namespace App\Listeners;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EnforceTwoFactorForSuperAdmin
 {
@@ -22,16 +22,16 @@ class EnforceTwoFactorForSuperAdmin
         /** @var User $user */
         $user = $event->user;
         $superAdminRoleName = config('app.super_admin_role_name', 'Super Admin');
-        
+
         if ($user->hasRole($superAdminRoleName)) {
             if (is_null($user->two_factor_secret)) {
-                
+
                 Auth::logout();
                 $this->request->session()->invalidate();
                 $this->request->session()->regenerateToken();
 
                 abort(redirect()->route('login')->withErrors([
-                    'login' => 'Twoje konto wymaga konfiguracji 2FA. Skontaktuj się z administratorem systemu, aby dokończyć konfigurację.'
+                    'login' => 'Twoje konto wymaga konfiguracji 2FA. Skontaktuj się z administratorem systemu, aby dokończyć konfigurację.',
                 ]));
             }
         }

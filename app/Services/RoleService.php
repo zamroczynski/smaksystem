@@ -100,7 +100,7 @@ class RoleService
      */
     public function getPaginatedRoles(array $options)
     {
-        $query = Role::query();
+        $query = Role::query()->where('is_system_protected', false);
 
         if ($options['show_disabled']) {
             $query->onlyTrashed();

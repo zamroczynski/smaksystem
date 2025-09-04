@@ -69,6 +69,11 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+
+        'protected_users' => [
+            'driver' => 'protected-eloquent',
+            'model' => App\Models\User::class,
+        ],
     ],
 
     /*
@@ -111,5 +116,7 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    'log' => env('LOG_AUTHENTICATION', false),
 
 ];

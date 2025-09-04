@@ -2,13 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Role;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Hash;
-use App\Models\Role;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
@@ -27,21 +26,21 @@ class DatabaseSeeder extends Seeder
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
+        $superAdminUser = User::create([
+            'login' => env('SUPER_ADMIN_LOGIN', 'superadmin'),
+            'name' => 'Super Admin',
+            'email' => env('SUPER_ADMIN_EMAIL', 'superadmin@example.com'),
+            'password' => env('SUPER_ADMIN_PASSWORD', 'password'),
+            'is_system_protected' => true,
+            'email_verified_at' => now(),
+            'remember_token' => Str::random(10),
+        ]);
         $superAdminRoleName = config('app.super_admin_role_name', 'Super Admin');
-        $superAdminUser = User::updateOrCreate(
-            ['login' => env('SUPER_ADMIN_LOGIN', 'superadmin')],
-            [
-                'name' => 'Super Admin',
-                'email' => env('SUPER_ADMIN_EMAIL', 'superadmin@example.com'),
-                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', 'password')),
-                'is_system_protected' => true,
-            ]
-        );
         $superAdminRole = Role::withoutGlobalScopes()->where('name', $superAdminRoleName)->first();
         $superAdminUser->assignRole($superAdminRole);
 
         $user = User::factory()->create([
-            'login' => 'Kierownik',
+            'login' => 'kierownik',
             'name' => 'Kierownik',
             'email' => 'test@example.com',
         ]);

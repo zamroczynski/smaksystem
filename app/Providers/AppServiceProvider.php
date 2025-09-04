@@ -18,9 +18,11 @@ use App\Observers\ScheduleObserver;
 use App\Observers\ScheduleShiftTemplateObserver;
 use App\Observers\ShiftTemplateObserver;
 use App\Observers\UserObserver;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
+use App\Policies\UserPolicy;
+use App\Providers\Auth\ProtectedUserProvider;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,12 +39,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (Schema::hasTable('roles')) {
+        Auth::provider('protected-eloquent', function ($app, array $config) {
+            return new ProtectedUserProvider($app['hash'], $config['model']);
+        });
+
+        config([
+            'auth.guards.web.provider' => 'protected_users',
+            'auth.providers.protected_users' => [
+                'driver' => 'protected-eloquent',
+                'model' => User::class,
+            ],
+        ]);
+
+        Gate::policy(User::class, UserPolicy::class);
+        if (\Illuminate\Support\Facades\Schema::hasTable('roles')) {
             Gate::before(function ($user, $ability) {
                 $superAdminRole = config('app.super_admin_role_name', 'Super Admin');
+
                 return $user->hasRole($superAdminRole) ? true : null;
             });
         }
+
         Holiday::observe(HolidayObserver::class);
         User::observe(UserObserver::class);
         Preference::observe(PreferenceObserver::class);

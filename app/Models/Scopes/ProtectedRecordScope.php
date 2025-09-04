@@ -10,6 +10,6 @@ class ProtectedRecordScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        $builder->where($model->getTable() . '.is_system_protected', false);
+        $builder->where($model->getTable().'.is_system_protected', false);
     }
 }
