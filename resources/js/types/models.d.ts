@@ -65,3 +65,43 @@ export interface Holiday extends TimestampsModel {
     day_month: string | null;
     calculation_rule: CalculationRule | null;
 }
+
+export interface ProductType extends TimestampsModel {
+    id: number;
+    name: string;
+}
+
+export interface Category extends TimestampsModel {
+    id: number;
+    name: string;
+}
+
+export interface UnitOfMeasure extends TimestampsModel {
+    id: number;
+    name: string;
+    symbol: string;
+}
+
+export interface VatRate extends TimestampsModel {
+    id: number;
+    name: string;
+    rate: number;
+}
+
+export interface Product extends TimestampsModel {
+    id: number;
+    name: string;
+    sku: string | null;
+    description: string | null;
+    product_type_id: number;
+    category_id: number;
+    unit_of_measure_id: number;
+    vat_rate_id: number;
+    is_sellable: boolean;
+    is_inventoried: boolean;
+    selling_price: number | null;
+    default_purchase_price: number | null;
+    
+    category_name?: string;
+    unit_symbol?: string;
+}

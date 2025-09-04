@@ -8,6 +8,7 @@ export * from './schedule';
 export * from './preference';
 export * from './shift-template';
 export * from './pagination';
+export * from './product';
 
 export interface Auth {
     user: User;
