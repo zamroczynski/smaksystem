@@ -7,6 +7,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ShiftTemplateController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\WorkerScheduleController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -65,6 +66,11 @@ Route::middleware(['auth', 'can:Grafik Pracy'])->group(function () {
 Route::middleware(['auth', 'can:Konfiguracja dni wolnych'])->group(function () {
     Route::resource('holidays', HolidayController::class)->except(['show']);
     Route::post('/holidays/{holiday}/restore', [HolidayController::class, 'restore'])->name('holidays.restore');
+});
+
+Route::middleware(['auth', 'can:Edycja Produktów'])->group(function () {
+    Route::resource('products', ProductController::class)->except(['show']);
+    Route::post('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
 });
 
 require __DIR__.'/settings.php';
