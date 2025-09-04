@@ -9,6 +9,7 @@ export * from './preference';
 export * from './shift-template';
 export * from './pagination';
 export * from './product';
+export * from './product-type';
 
 export interface Auth {
     user: User;

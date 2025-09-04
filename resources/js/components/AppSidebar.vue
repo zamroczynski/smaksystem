@@ -81,6 +81,12 @@ const allNavItems: NavItemWithPermission[] = [
         icon: Apple,
         permission: 'Edycja Produktów',
     },
+    {
+        title: 'Typ Produktu',
+        href: '/product-types',
+        icon: Apple,
+        permission: 'Edycja Produktów',
+    },
 ];
 
 const filteredNavItems = computed(() => {
