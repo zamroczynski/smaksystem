@@ -2,10 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
+use Spatie\Permission\Models\Permission;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -38,20 +37,28 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        /** @var \App\Models\User|null $user */
+        $user = $request->user();
         $rolePermissions = [];
-        if ($user && $user->roles->isNotEmpty()) {
-            /** @var App\Models\Role $firstRole */
-            $firstRole = $user->roles->first();
-            $rolePermissions = $firstRole->permissions->pluck('name')->toArray();
+
+        $superAdminRoleName = config('app.super_admin_role_name', 'Super Admin');
+        if ($user) {
+            $superAdminRoleName = config('app.super_admin_role_name', 'Super Admin');
+
+            if ($user->hasRole($superAdminRoleName)) {
+                $rolePermissions = Permission::pluck('name')->toArray();
+            } else {
+                if ($user && $user->roles->isNotEmpty()) {
+                    /** @var App\Models\Role $firstRole */
+                    $firstRole = $user->roles->first();
+                    $rolePermissions = $firstRole->permissions->pluck('name')->toArray();
+                }
+            }
         }
 
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
                 'role_permissions' => $rolePermissions,

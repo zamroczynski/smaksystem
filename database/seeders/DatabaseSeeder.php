@@ -2,10 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Role;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
 {
@@ -21,9 +24,24 @@ class DatabaseSeeder extends Seeder
             HolidaySeeder::class,
         ]);
 
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $superAdminUser = User::create([
+            'login' => env('SUPER_ADMIN_LOGIN', 'superadmin'),
+            'name' => 'Super Admin',
+            'email' => env('SUPER_ADMIN_EMAIL', 'superadmin@example.com'),
+            'password' => env('SUPER_ADMIN_PASSWORD', 'password'),
+            'is_system_protected' => true,
+            'email_verified_at' => now(),
+            'remember_token' => Str::random(10),
+        ]);
+        $superAdminRoleName = config('app.super_admin_role_name', 'Super Admin');
+        $superAdminRole = Role::withoutGlobalScopes()->where('name', $superAdminRoleName)->first();
+        $superAdminUser->assignRole($superAdminRole);
+
         $user = User::factory()->create([
-            'login' => 'admin',
-            'name' => 'admin',
+            'login' => 'kierownik',
+            'name' => 'Kierownik',
             'email' => 'test@example.com',
         ]);
 

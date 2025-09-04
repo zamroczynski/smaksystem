@@ -3,17 +3,24 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Scopes\ProtectedRecordScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new ProtectedRecordScope);
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -35,6 +42,15 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'two_factor_enabled',
     ];
 
     /**
@@ -71,8 +87,19 @@ class User extends Authenticatable
     /**
      * Get the schedule assignments for the user.
      */
-    public function scheduleAssignments(): HasMany // Dodaj tę metodę
+    public function scheduleAssignments(): HasMany
     {
         return $this->hasMany(ScheduleAssignment::class);
+    }
+
+    /**
+     * Determine if two-factor authentication is enabled for the user.
+     *
+     * @return bool
+     */
+    public function getTwoFactorEnabledAttribute()
+    {
+        return ! is_null($this->two_factor_secret) &&
+               ! is_null($this->two_factor_confirmed_at);
     }
 }
