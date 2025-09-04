@@ -15,7 +15,9 @@ import {
     CalendarClock, 
     CalendarDays, 
     TreePalm, 
-    Apple 
+    Apple,
+    CircleDollarSign,
+    Ruler 
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
@@ -96,7 +98,13 @@ const allNavItems: NavItemWithPermission[] = [
     {
         title: 'Jednostki Miary',
         href: '/unit-of-measures',
-        icon: Apple,
+        icon: Ruler,
+        permission: 'Edycja Produktów',
+    },
+    {
+        title: 'Stawki VAT',
+        href: '/vat-rates',
+        icon: CircleDollarSign,
         permission: 'Edycja Produktów',
     },
 ];

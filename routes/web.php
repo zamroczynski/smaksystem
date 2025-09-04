@@ -11,6 +11,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UnitOfMeasureController;
+use App\Http\Controllers\VatRateController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -83,6 +84,9 @@ Route::middleware(['auth', 'can:Edycja Produktów'])->group(function () {
 
     Route::resource('unit-of-measures', UnitOfMeasureController::class)->except(['show']);
     Route::post('unit-of-measures/{unit_of_measure}/restore', [UnitOfMeasureController::class, 'restore'])->name('unit-of-measures.restore');
+
+    Route::resource('vat-rates', VatRateController::class);
+    Route::post('vat-rates/{vat_rate}/restore', [VatRateController::class, 'restore'])->name('vat-rates.restore');
 });
 
 require __DIR__.'/settings.php';
