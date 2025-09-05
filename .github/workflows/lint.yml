@@ -31,6 +31,14 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Copy Environment File
+        run: cp .env.example .env
+
+      - name: Create Dummy Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
       - name: Install PHP Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
