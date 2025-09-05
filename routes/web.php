@@ -1,11 +1,16 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\PreferenceController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductTypeController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ShiftTemplateController;
+use App\Http\Controllers\UnitOfMeasureController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\VatRateController;
 use App\Http\Controllers\WorkerScheduleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -65,6 +70,23 @@ Route::middleware(['auth', 'can:Grafik Pracy'])->group(function () {
 Route::middleware(['auth', 'can:Konfiguracja dni wolnych'])->group(function () {
     Route::resource('holidays', HolidayController::class)->except(['show']);
     Route::post('/holidays/{holiday}/restore', [HolidayController::class, 'restore'])->name('holidays.restore');
+});
+
+Route::middleware(['auth', 'can:Edycja Produktów'])->group(function () {
+    Route::resource('products', ProductController::class)->except(['show']);
+    Route::post('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
+
+    Route::resource('product-types', ProductTypeController::class)->except(['show']);
+    Route::post('product-types/{product_type}/restore', [ProductTypeController::class, 'restore'])->name('product-types.restore');
+
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+
+    Route::resource('unit-of-measures', UnitOfMeasureController::class)->except(['show']);
+    Route::post('unit-of-measures/{unit_of_measure}/restore', [UnitOfMeasureController::class, 'restore'])->name('unit-of-measures.restore');
+
+    Route::resource('vat-rates', VatRateController::class);
+    Route::post('vat-rates/{vat_rate}/restore', [VatRateController::class, 'restore'])->name('vat-rates.restore');
 });
 
 require __DIR__.'/settings.php';

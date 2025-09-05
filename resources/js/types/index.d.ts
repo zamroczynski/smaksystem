@@ -8,6 +8,11 @@ export * from './schedule';
 export * from './preference';
 export * from './shift-template';
 export * from './pagination';
+export * from './product';
+export * from './product-type';
+export * from './category';
+export * from './unit-of-measure';
+export * from './vat-rate';
 
 export interface Auth {
     user: User;

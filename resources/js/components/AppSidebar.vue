@@ -6,7 +6,19 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 // import { BookOpen, Folder } from 'lucide-vue-next';
-import { LayoutGrid, User, Award, FileSliders, AlarmClockPlus, CalendarClock, CalendarDays, TreePalm } from 'lucide-vue-next';
+import { 
+    LayoutGrid, 
+    User, 
+    Award, 
+    FileSliders, 
+    AlarmClockPlus, 
+    CalendarClock, 
+    CalendarDays, 
+    TreePalm, 
+    Apple,
+    CircleDollarSign,
+    Ruler 
+} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -64,6 +76,36 @@ const allNavItems: NavItemWithPermission[] = [
         href: '/employee-schedules',
         icon: CalendarDays,
         permission: 'Grafik Pracy',
+    },
+    {
+        title: 'Produkty',
+        href: '/products',
+        icon: Apple,
+        permission: 'Edycja Produktów',
+    },
+    {
+        title: 'Typ Produktu',
+        href: '/product-types',
+        icon: Apple,
+        permission: 'Edycja Produktów',
+    },
+    {
+        title: 'Kategorie Produktu',
+        href: '/categories',
+        icon: Apple,
+        permission: 'Edycja Produktów',
+    },
+    {
+        title: 'Jednostki Miary',
+        href: '/unit-of-measures',
+        icon: Ruler,
+        permission: 'Edycja Produktów',
+    },
+    {
+        title: 'Stawki VAT',
+        href: '/vat-rates',
+        icon: CircleDollarSign,
+        permission: 'Edycja Produktów',
     },
 ];
 

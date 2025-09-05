@@ -127,6 +127,15 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'product_actions' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/product_actions.log'),
+            'level' => 'info',
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
+            'permission' => 0664,
+            'locking' => true,
+        ],
+
     ],
 
 ];
