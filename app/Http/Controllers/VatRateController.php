@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\VatRate;
-use App\Services\VatRateService;
 use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreVatRateRequest;
 use App\Http\Requests\UpdateVatRateRequest;
+use App\Models\VatRate;
+use App\Services\VatRateService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

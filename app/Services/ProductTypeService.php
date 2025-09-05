@@ -3,15 +3,15 @@
 namespace App\Services;
 
 use App\Models\ProductType;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProductTypeService
 {
     /**
      * Retrieves a paginated list of product types with filtering and sorting options.
      *
-     * @param  array  $options Filtering and sorting options.
+     * @param  array  $options  Filtering and sorting options.
      */
     public function getPaginatedProductTypes(array $options): LengthAwarePaginator
     {

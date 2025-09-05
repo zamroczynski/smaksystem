@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UnitOfMeasure;
-use App\Services\UnitOfMeasureService;
 use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreUnitOfMeasureRequest;
 use App\Http\Requests\UpdateUnitOfMeasureRequest;
+use App\Models\UnitOfMeasure;
+use App\Services\UnitOfMeasureService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

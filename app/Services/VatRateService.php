@@ -11,7 +11,7 @@ class VatRateService
     /**
      * Downloads a paginated list of VAT rates with filtering and sorting options.
      *
-     * @param  array  $options Filtering and sorting options.
+     * @param  array  $options  Filtering and sorting options.
      */
     public function getPaginatedVatRates(array $options): LengthAwarePaginator
     {
@@ -58,7 +58,7 @@ class VatRateService
     protected function applyFilters(Builder $query, ?string $filter): Builder
     {
         if ($filter) {
-            $lowerCaseFilter=strtolower($filter);
+            $lowerCaseFilter = strtolower($filter);
             $words = explode(' ', $lowerCaseFilter);
             $words = array_filter($words);
             foreach ($words as $word) {

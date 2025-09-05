@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductType;
 use App\Helpers\BreadcrumbsGenerator;
-use App\Services\ProductTypeService;
 use App\Http\Requests\StoreProductTypeRequest;
 use App\Http\Requests\UpdateProductTypeRequest;
+use App\Models\ProductType;
+use App\Services\ProductTypeService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 

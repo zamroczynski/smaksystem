@@ -1,17 +1,17 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\PreferenceController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductTypeController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ShiftTemplateController;
-use App\Http\Controllers\UsersController;
-use App\Http\Controllers\WorkerScheduleController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductTypeController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UnitOfMeasureController;
+use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VatRateController;
+use App\Http\Controllers\WorkerScheduleController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

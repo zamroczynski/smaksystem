@@ -3,15 +3,15 @@
 namespace App\Services;
 
 use App\Models\Category;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class CategoryService
 {
     /**
      * Retrieves a paginated list of categories with filtering and sorting options.
      *
-     * @param  array  $options Filtering and sorting options.
+     * @param  array  $options  Filtering and sorting options.
      */
     public function getPaginatedCategories(array $options): LengthAwarePaginator
     {

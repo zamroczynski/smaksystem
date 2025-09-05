@@ -11,7 +11,7 @@ class ProductService
     /**
      * Retrieves a paginated list of products with filtering and sorting options.
      *
-     * @param array $options Filtering and sorting options.
+     * @param  array  $options  Filtering and sorting options.
      */
     public function getPaginatedProducts(array $options): LengthAwarePaginator
     {

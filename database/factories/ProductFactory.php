@@ -21,7 +21,7 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         $isSellable = $this->faker->boolean();
-        
+
         return [
             'name' => $this->faker->words(3, true),
             'sku' => $this->faker->unique()->ean8(),

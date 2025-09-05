@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\BreadcrumbsGenerator;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\UnitOfMeasure;
 use App\Models\VatRate;
 use App\Services\ProductService;
-use App\Helpers\BreadcrumbsGenerator;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +31,7 @@ class ProductController extends Controller
             'sort' => $request->input('sort', 'id'),
             'direction' => $request->input('direction', 'asc'),
         ];
-        
+
         $products = $this->productService->getPaginatedProducts($options);
 
         return Inertia::render('Products/Index', [
@@ -121,7 +121,7 @@ class ProductController extends Controller
     {
         $productName = $product->name;
         $productId = $product->id;
-        
+
         $product->delete();
 
         Log::channel('product_actions')->info('Usunięto produkt.', [

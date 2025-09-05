@@ -3,15 +3,15 @@
 namespace App\Services;
 
 use App\Models\UnitOfMeasure;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class UnitOfMeasureService
 {
     /**
      * Retrieves a paginated list of units of measurement with filtering and sorting options.
      *
-     * @param  array  $options Filtering and sorting options.
+     * @param  array  $options  Filtering and sorting options.
      */
     public function getPaginatedUnitOfMeasures(array $options): LengthAwarePaginator
     {
@@ -61,7 +61,7 @@ class UnitOfMeasureService
             $lowerCaseFilter = strtolower($filter);
             $query->where(function (Builder $query) use ($lowerCaseFilter) {
                 $query->whereRaw('LOWER(name) LIKE ?', ["%{$lowerCaseFilter}%"])
-                      ->orWhereRaw('LOWER(symbol) LIKE ?', ["%{$lowerCaseFilter}%"]);
+                    ->orWhereRaw('LOWER(symbol) LIKE ?', ["%{$lowerCaseFilter}%"]);
             });
         }
 
