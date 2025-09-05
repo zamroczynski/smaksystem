@@ -31,20 +31,17 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Copy Environment File
-        run: cp .env.example .env
-
-      - name: Configure DB
+      - name: Prepare environment for Composer
         run: |
-          echo "DB_CONNECTION=pgsql" >> .env
-          echo "DB_HOST=127.0.0.1" >> .env
-          echo "DB_PORT=5432" >> .env
-          echo "DB_DATABASE=testing" >> .env
-          echo "DB_USERNAME=user" >> .env
-          echo "DB_PASSWORD=password" >> .env
+          cp .env.example .env
+          echo "DB_CONNECTION=sqlite" >> .env
           echo "SESSION_DRIVER=array" >> .env
           echo "CACHE_STORE=array" >> .env
-          echo "QUEUE_CONNECTION=sync" >> .env
+          mkdir -p database
+          touch database/database.sqlite
+        
+      - name: Generate Application Key
+        run: php artisan key:generate
 
       - name: Install PHP Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
