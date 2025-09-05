@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import type { PageProps, PaginatedData } from '@/types';
 import type { UnitOfMeasure } from '@/types/models';
 

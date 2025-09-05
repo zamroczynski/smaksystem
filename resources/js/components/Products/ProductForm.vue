@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-mutating-props */
 import type { ProductCreateProps, ProductFormType } from '@/types';
 import type { InertiaForm } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 
-defineProps<{
+const { form, productParams } = defineProps<{
     form: InertiaForm<ProductFormType>; 
     productParams: Omit<ProductCreateProps, 'flash' | 'breadcrumbs'>;
 }>();
@@ -83,7 +84,7 @@ const emit = defineEmits(['submit']);
              <div class="space-y-2">
                 <Label for="is_sellable">Produkt przeznaczony do sprzedaży?</Label>
                 <div class="flex items-center space-x-2">
-                    <Switch id="is_sellable" v-model-value="form.is_sellable" @update:model-value="form.is_sellable = $event" />
+                    <Switch id="is_sellable" :v-model-value="form.is_sellable" @update:model-value="form.is_sellable = $event" />
                     <span>{{ form.is_sellable ? 'Tak' : 'Nie' }}</span>
                 </div>
                 <p v-if="form.errors.is_sellable" class="text-sm text-red-500 mt-1">{{ form.errors.is_sellable }}</p>
@@ -91,7 +92,7 @@ const emit = defineEmits(['submit']);
              <div class="space-y-2">
                 <Label for="is_inventoried">Czy śledzić stan magazynowy?</Label>
                  <div class="flex items-center space-x-2">
-                    <Switch id="is_inventoried" v-model-value="form.is_inventoried" @update:model-value="form.is_inventoried = $event" />
+                    <Switch id="is_inventoried" :v-model-value="form.is_inventoried" @update:model-value="form.is_inventoried = $event" />
                     <span>{{ form.is_inventoried ? 'Tak' : 'Nie' }}</span>
                 </div>
                 <p v-if="form.errors.is_inventoried" class="text-sm text-red-500 mt-1">{{ form.errors.is_inventoried }}</p>

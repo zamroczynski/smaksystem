@@ -1,3 +1,4 @@
+ 
 import type { PageProps, PaginatedData } from '@/types';
 import type { Product, ProductType, Category, UnitOfMeasure, VatRate } from '@/types/models';
 import type { FormDataConvertible } from '@inertiajs/core';

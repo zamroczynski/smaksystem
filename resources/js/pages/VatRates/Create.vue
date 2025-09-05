@@ -34,7 +34,7 @@ const submit = () => {
 <template>
     <Head title="Dodaj Stawkę VAT" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <AppLayout :breadcrumbs="props.breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             <div class="p-6 bg-white rounded-xl shadow-sm dark:bg-gray-800">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Dodaj Nową Stawkę VAT</h3>

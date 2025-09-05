@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { type ShiftTemplate } from '@/types/models';
 import { type PaginatedData, type PageProps } from '@/types';
 
@@ -13,9 +14,7 @@ export interface ShiftTemplateIndexProps extends PageProps {
     sort_direction?: 'asc' | 'desc' | null;
 }
 
-export interface ShiftTemplateCreateProps extends PageProps {
-    tempData: null;
-}
+export interface ShiftTemplateCreateProps extends PageProps {}
 
 export interface ShiftTemplateEditProps extends PageProps {
     shiftTemplate: ShiftTemplate;

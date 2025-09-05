@@ -46,7 +46,7 @@ const deactivateProductConfirmed = () => {
                 productToDeactivate.value = null;
                 fetchTableData();
             },
-            onError: (errors) => toast.error(props.flash?.error || 'Wystąpił błąd podczas dezaktywacji.'),
+            onError: () => toast.error(props.flash?.error || 'Wystąpił błąd podczas dezaktywacji.'),
         });
     }
 };
