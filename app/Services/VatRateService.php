@@ -58,8 +58,12 @@ class VatRateService
     protected function applyFilters(Builder $query, ?string $filter): Builder
     {
         if ($filter) {
-            $lowerCaseFilter = strtolower($filter);
-            $query->whereRaw('LOWER(name) LIKE ?', ["%{$lowerCaseFilter}%"]);
+            $lowerCaseFilter=strtolower($filter);
+            $words = explode(' ', $lowerCaseFilter);
+            $words = array_filter($words);
+            foreach ($words as $word) {
+                $query->whereRaw('LOWER(name) LIKE ?', ["%{$word}%"]);
+            }
         }
 
         return $query;
