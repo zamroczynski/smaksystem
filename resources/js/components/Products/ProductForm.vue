@@ -1,28 +1,11 @@
 <script setup lang="ts">
+import type { ProductCreateProps, ProductFormType } from '@/types';
+import type { InertiaForm } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import type { ProductCreateProps } from '@/types';
-import type { InertiaForm } from '@inertiajs/vue3';
-import { FormDataConvertible } from '@inertiajs/core';
-
-interface ProductFormData {
-    name: string;
-    sku: string;
-    description: string;
-    product_type_id: number | null;
-    category_id: number | null;
-    unit_of_measure_id: number | null;
-    vat_rate_id: number | null;
-    is_sellable: boolean;
-    is_inventoried: boolean;
-    selling_price: string | number;
-    default_purchase_price: string | number;
-}
-
-type ProductFormType = ProductFormData & Record<string, FormDataConvertible | null>;
 
 defineProps<{
     form: InertiaForm<ProductFormType>; 
@@ -100,7 +83,7 @@ const emit = defineEmits(['submit']);
              <div class="space-y-2">
                 <Label for="is_sellable">Produkt przeznaczony do sprzedaży?</Label>
                 <div class="flex items-center space-x-2">
-                    <Switch id="is_sellable" v-model:checked="form.is_sellable" />
+                    <Switch id="is_sellable" v-model-value="form.is_sellable" @update:model-value="form.is_sellable = $event" />
                     <span>{{ form.is_sellable ? 'Tak' : 'Nie' }}</span>
                 </div>
                 <p v-if="form.errors.is_sellable" class="text-sm text-red-500 mt-1">{{ form.errors.is_sellable }}</p>
@@ -108,7 +91,7 @@ const emit = defineEmits(['submit']);
              <div class="space-y-2">
                 <Label for="is_inventoried">Czy śledzić stan magazynowy?</Label>
                  <div class="flex items-center space-x-2">
-                    <Switch id="is_inventoried" v-model:checked="form.is_inventoried" />
+                    <Switch id="is_inventoried" v-model-value="form.is_inventoried" @update:model-value="form.is_inventoried = $event" />
                     <span>{{ form.is_inventoried ? 'Tak' : 'Nie' }}</span>
                 </div>
                 <p v-if="form.errors.is_inventoried" class="text-sm text-red-500 mt-1">{{ form.errors.is_inventoried }}</p>

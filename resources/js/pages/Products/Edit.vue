@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type ProductEditProps } from '@/types';
+import type { ProductEditProps, ProductFormType } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
@@ -8,18 +8,18 @@ import ProductForm from '@/components/Products/ProductForm.vue';
 
 const props = defineProps<ProductEditProps>();
 
-const form = useForm({
+const form = useForm<ProductFormType>({
     name: props.product.name,
-    sku: props.product.sku,
-    description: props.product.description,
+    sku: props.product.sku ?? '',
+    description: props.product.description ?? '',
     product_type_id: props.product.product_type_id,
     category_id: props.product.category_id,
     unit_of_measure_id: props.product.unit_of_measure_id,
     vat_rate_id: props.product.vat_rate_id,
     is_sellable: props.product.is_sellable,
     is_inventoried: props.product.is_inventoried,
-    selling_price: props.product.selling_price,
-    default_purchase_price: props.product.default_purchase_price,
+    selling_price: props.product.selling_price ?? '',
+    default_purchase_price: props.product.default_purchase_price ?? '',
 });
 
 const productParams = {
