@@ -12,6 +12,7 @@ use App\Http\Controllers\UnitOfMeasureController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\VatRateController;
 use App\Http\Controllers\WorkerScheduleController;
+use App\Http\Controllers\RecipeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -87,6 +88,11 @@ Route::middleware(['auth', 'can:Edycja Produktów'])->group(function () {
 
     Route::resource('vat-rates', VatRateController::class);
     Route::post('vat-rates/{vat_rate}/restore', [VatRateController::class, 'restore'])->name('vat-rates.restore');
+});
+
+Route::middleware(['auth', 'can:Edycja Receptur'])->group(function () {
+    Route::resource('recipes', RecipeController::class)->except(['show']);
+    Route::post('/recipes/{holiday}/restore', [RecipeController::class, 'restore'])->name('recipes.restore');
 });
 
 require __DIR__.'/settings.php';

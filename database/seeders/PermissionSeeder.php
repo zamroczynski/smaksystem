@@ -20,5 +20,6 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'Edycja Grafików Pracy']);
         Permission::create(['name' => 'Konfiguracja dni wolnych']);
         Permission::create(['name' => 'Edycja Produktów']);
+        Permission::create(['name' => 'Edycja Receptur']);
     }
 }
