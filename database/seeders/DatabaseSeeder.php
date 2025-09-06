@@ -3,11 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Role;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
@@ -22,6 +21,11 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ShiftTemplateSeeder::class,
             HolidaySeeder::class,
+            VatRateSeeder::class,
+            CategorySeeder::class,
+            ProductTypeSeeder::class,
+            UnitOfMeasureSeeder::class,
+            ProductSeeder::class
         ]);
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
