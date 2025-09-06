@@ -17,7 +17,8 @@ import {
     TreePalm, 
     Apple,
     CircleDollarSign,
-    Ruler 
+    Ruler,
+    Salad
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
@@ -106,6 +107,12 @@ const allNavItems: NavItemWithPermission[] = [
         href: '/vat-rates',
         icon: CircleDollarSign,
         permission: 'Edycja Produktów',
+    },
+    {
+        title: 'Receptury',
+        href: '/recipes',
+        icon: Salad,
+        permission: 'Edycja Receptur',
     },
 ];
 
