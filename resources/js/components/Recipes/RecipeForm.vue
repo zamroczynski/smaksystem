@@ -31,7 +31,6 @@ const removeIngredient = (index: number) => {
 
 <template>
      <form @submit.prevent="emit('submit')" class="space-y-6">
-        <!-- Sekcja Główna -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <Label for="name">Nazwa receptury <span class="text-red-500">*</span></Label>
@@ -85,7 +84,6 @@ const removeIngredient = (index: number) => {
             </div>
         </div>
 
-        <!-- Sekcja Składników -->
         <div class="space-y-4 pt-4 border-t">
                 <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100">Składniki</h4>
                 <div v-for="(ingredient, index) in form.ingredients" :key="index" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 border rounded-md">

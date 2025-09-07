@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Recipe;
-use App\Services\RecipeService;
 use App\Helpers\BreadcrumbsGenerator;
 use App\Http\Requests\StoreRecipeRequest;
 use App\Http\Requests\UpdateRecipeRequest;
+use App\Models\Recipe;
+use App\Services\RecipeService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -91,7 +91,6 @@ class RecipeController extends Controller
         return redirect()->route('recipes.index')->with('success', 'Receptura została pomyślnie zaktualizowana.');
     }
 
-
     /**
      * Remove the specified resource from storage.
      */
@@ -111,6 +110,7 @@ class RecipeController extends Controller
 
         if ($recipe) {
             $recipe->restore();
+
             return to_route('recipes.index')->with('success', 'Użytkownik został pomyślnie przywrócony.');
         }
 

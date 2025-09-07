@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Recipe;
 use App\Models\Product;
 use App\Models\ProductType;
+use App\Models\Recipe;
 use App\Models\UnitOfMeasure;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class RecipeService
 {
@@ -98,7 +98,7 @@ class RecipeService
     /**
      * Creates a new recipe with its ingredients.
      *
-     * @param array $data Validated data from the request.
+     * @param  array  $data  Validated data from the request.
      * @return Recipe The newly created recipe.
      */
     public function createRecipe(array $data): Recipe
@@ -115,8 +115,8 @@ class RecipeService
     /**
      * Updates an existing recipe and syncs its ingredients.
      *
-     * @param Recipe $recipe The recipe instance to update.
-     * @param array $data Validated data from the request.
+     * @param  Recipe  $recipe  The recipe instance to update.
+     * @param  array  $data  Validated data from the request.
      * @return Recipe The updated recipe.
      */
     public function updateRecipe(Recipe $recipe, array $data): Recipe
@@ -133,8 +133,6 @@ class RecipeService
 
     /**
      * Gathers all necessary data for the recipe creation form.
-     *
-     * @return array
      */
     public function getDataForCreatePage(): array
     {
@@ -143,9 +141,6 @@ class RecipeService
 
     /**
      * Gathers all necessary data for the recipe editing form.
-     *
-     * @param Recipe $recipe
-     * @return array
      */
     public function getDataForEditPage(Recipe $recipe): array
     {
@@ -176,8 +171,6 @@ class RecipeService
 
     /**
      * Retrieves data common to both create and edit forms.
-     *
-     * @return array
      */
     private function getSharedFormData(): array
     {

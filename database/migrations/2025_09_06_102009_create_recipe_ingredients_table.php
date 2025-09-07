@@ -14,20 +14,20 @@ return new class extends Migration
         Schema::create('recipe_ingredients', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('recipe_id') 
-                  ->constrained('recipes')
-                  ->cascadeOnDelete();
+            $table->foreignId('recipe_id')
+                ->constrained('recipes')
+                ->cascadeOnDelete();
 
             $table->foreignId('product_id')
-                  ->comment('The ingredient product')
-                  ->constrained('products')
-                  ->cascadeOnDelete();
-            
+                ->comment('The ingredient product')
+                ->constrained('products')
+                ->cascadeOnDelete();
+
             $table->decimal('quantity', 10, 4);
 
             $table->foreignId('unit_of_measure_id')
-                  ->constrained('unit_of_measures')
-                  ->restrictOnDelete();
+                ->constrained('unit_of_measures')
+                ->restrictOnDelete();
 
             $table->unique(['recipe_id', 'product_id']);
         });

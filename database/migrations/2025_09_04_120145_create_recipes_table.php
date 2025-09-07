@@ -18,15 +18,15 @@ return new class extends Migration
             $table->text('instructions')->nullable();
 
             $table->foreignId('product_id')
-                  ->comment('The final product that this recipe creates')
-                  ->constrained('products')
-                  ->cascadeOnDelete();
+                ->comment('The final product that this recipe creates')
+                ->constrained('products')
+                ->cascadeOnDelete();
 
             $table->decimal('yield_quantity', 10, 4)->default(1.0000);
 
             $table->foreignId('yield_unit_of_measure_id')
-                  ->constrained('unit_of_measures')
-                  ->cascadeOnDelete();
+                ->constrained('unit_of_measures')
+                ->cascadeOnDelete();
 
             $table->boolean('is_active')->default(true);
             $table->timestamps();

@@ -37,7 +37,7 @@ class ProductService
         $productsQuery = $this->applyFilters($productsQuery, $filter);
         $productsQuery = $this->applySorting($productsQuery, $sort, $direction);
 
-        $products = $productsQuery->paginate(15)->appends([
+        $products = $productsQuery->paginate(10)->appends([
             'show_disabled' => $showDisabled,
             'filter' => $filter,
             'sort' => $sort,

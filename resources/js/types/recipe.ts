@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
+ 
 import type { PaginatedData, PageProps } from '@/types';
-import type { Recipe,  Product, UnitOfMeasure } from '@/types/models';
+import type { Recipe, UnitOfMeasure } from '@/types/models';
 import type { FormDataConvertible } from '@inertiajs/core';
 
 interface RecipeData extends PaginatedData {
@@ -13,11 +13,6 @@ export interface RecipeIndexProps extends PageProps {
     filter: string | null;
     sort_by: string | null;
     sort_direction: 'asc' | 'desc' | null;
-}
-
-interface SelectOption {
-    id: number;
-    name: string;
 }
 
 export interface RecipeCreateProps extends PageProps, RecipeFormParams {}

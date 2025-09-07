@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRecipeRequest extends FormRequest
 {
@@ -30,7 +30,7 @@ class StoreRecipeRequest extends FormRequest
             'yield_quantity' => ['required', 'numeric', 'gt:0'],
             'yield_unit_of_measure_id' => ['required', 'integer', Rule::exists('unit_of_measures', 'id')],
             'is_active' => ['sometimes', 'boolean'],
-            
+
             'ingredients' => ['required', 'array', 'min:1'],
             'ingredients.*.product_id' => ['required', 'integer', Rule::exists('products', 'id')],
             'ingredients.*.quantity' => ['required', 'numeric', 'gt:0'],
