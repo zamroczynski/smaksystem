@@ -140,7 +140,7 @@ const columns: ColumnDef<ProductType>[] = [
                     ? h(Button, { variant: 'outline', size: 'sm', onClick: () => restoreItem(item.id) }, { default: () => 'Przywróć' })
                     : null,
                 item.deleted_at === null
-                    ? h(Button, { variant: 'destructive', size: 'sm', onClick: () => confirmDelete(item) }, { default: () => 'Archiwizuj' })
+                    ? h(Button, { variant: 'destructive', size: 'sm', onClick: () => confirmDelete(item) }, { default: () => 'Wyłącz' })
                     : null,
             ]);
         },

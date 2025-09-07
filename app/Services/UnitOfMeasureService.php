@@ -37,7 +37,7 @@ class UnitOfMeasureService
         $query = $this->applyFilters($query, $filter);
         $query = $this->applySorting($query, $sort, $direction);
 
-        $unitOfMeasures = $query->paginate(15)->appends([
+        $unitOfMeasures = $query->paginate(10)->appends([
             'show_disabled' => $showDisabled,
             'filter' => $filter,
             'sort' => $sort,

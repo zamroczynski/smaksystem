@@ -27,11 +27,6 @@ return new class extends Migration
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade');
         });
-
-        Schema::table('recipes', function (Blueprint $table) {
-            $table->foreign('dish_product_id')->references('id')->on('products')->onDelete('cascade');
-            $table->foreign('ingredient_product_id')->references('id')->on('products')->onDelete('cascade');
-        });
     }
 
     /**

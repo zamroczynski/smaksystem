@@ -37,7 +37,7 @@ class VatRateService
         $query = $this->applyFilters($query, $filter);
         $query = $this->applySorting($query, $sort, $direction);
 
-        $vatRates = $query->paginate(15)->appends([
+        $vatRates = $query->paginate(10)->appends([
             'show_disabled' => $showDisabled,
             'filter' => $filter,
             'sort' => $sort,

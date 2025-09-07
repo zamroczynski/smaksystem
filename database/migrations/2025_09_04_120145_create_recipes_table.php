@@ -12,12 +12,25 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('recipes', function (Blueprint $table) {
-            $table->unsignedBigInteger('dish_product_id');
-            $table->unsignedBigInteger('ingredient_product_id');
+            $table->id('id')->primary();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->text('instructions')->nullable();
 
-            $table->decimal('quantity', 10, 3);
+            $table->foreignId('product_id')
+                ->comment('The final product that this recipe creates')
+                ->constrained('products')
+                ->cascadeOnDelete();
 
-            $table->primary(['dish_product_id', 'ingredient_product_id']);
+            $table->decimal('yield_quantity', 10, 4)->default(1.0000);
+
+            $table->foreignId('yield_unit_of_measure_id')
+                ->constrained('unit_of_measures')
+                ->cascadeOnDelete();
+
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

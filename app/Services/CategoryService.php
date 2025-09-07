@@ -37,7 +37,7 @@ class CategoryService
         $query = $this->applyFilters($query, $filter);
         $query = $this->applySorting($query, $sort, $direction);
 
-        $categories = $query->paginate(15)->appends([
+        $categories = $query->paginate(10)->appends([
             'show_disabled' => $showDisabled,
             'filter' => $filter,
             'sort' => $sort,

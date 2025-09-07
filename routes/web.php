@@ -5,6 +5,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ShiftTemplateController;
@@ -87,6 +88,11 @@ Route::middleware(['auth', 'can:Edycja Produktów'])->group(function () {
 
     Route::resource('vat-rates', VatRateController::class);
     Route::post('vat-rates/{vat_rate}/restore', [VatRateController::class, 'restore'])->name('vat-rates.restore');
+});
+
+Route::middleware(['auth', 'can:Edycja Receptur'])->group(function () {
+    Route::resource('recipes', RecipeController::class)->except(['show']);
+    Route::post('/recipes/{holiday}/restore', [RecipeController::class, 'restore'])->name('recipes.restore');
 });
 
 require __DIR__.'/settings.php';

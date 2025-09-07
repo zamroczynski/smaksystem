@@ -105,3 +105,17 @@ export interface Product extends TimestampsModel {
     category_name?: string;
     unit_symbol?: string;
 }
+
+export interface RecipeIngredient {
+    product_id: number;
+    quantity: number;
+    unit_of_measure_id: number;
+}
+
+export interface Recipe extends TimestampsModel {
+    id: number;
+    name: string;
+    product_name: string;
+    yield_quantity: number;
+    yield_unit_name: string;
+}

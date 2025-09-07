@@ -84,7 +84,7 @@ const emit = defineEmits(['submit']);
              <div class="space-y-2">
                 <Label for="is_sellable">Produkt przeznaczony do sprzedaży?</Label>
                 <div class="flex items-center space-x-2">
-                    <Switch id="is_sellable" :v-model-value="form.is_sellable" @update:model-value="form.is_sellable = $event" />
+                    <Switch id="is_sellable" v-model="form.is_sellable" />
                     <span>{{ form.is_sellable ? 'Tak' : 'Nie' }}</span>
                 </div>
                 <p v-if="form.errors.is_sellable" class="text-sm text-red-500 mt-1">{{ form.errors.is_sellable }}</p>
@@ -92,7 +92,7 @@ const emit = defineEmits(['submit']);
              <div class="space-y-2">
                 <Label for="is_inventoried">Czy śledzić stan magazynowy?</Label>
                  <div class="flex items-center space-x-2">
-                    <Switch id="is_inventoried" :v-model-value="form.is_inventoried" @update:model-value="form.is_inventoried = $event" />
+                    <Switch id="is_inventoried" v-model="form.is_inventoried" />
                     <span>{{ form.is_inventoried ? 'Tak' : 'Nie' }}</span>
                 </div>
                 <p v-if="form.errors.is_inventoried" class="text-sm text-red-500 mt-1">{{ form.errors.is_inventoried }}</p>
